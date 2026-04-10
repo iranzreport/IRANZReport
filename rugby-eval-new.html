@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRANZ Rugby Evaluation</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a; --dark: #111827; --card: #1a2234; --border: #243047;
+    --green: #22c55e; --green-dim: #16a34a; --amber: #f59e0b; --red: #ef4444;
+    --blue: #38bdf8; --white: #f8fafc; --muted: #94a3b8; --text: #e2e8f0;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--black); color:var(--text); font-family:'Barlow',sans-serif; font-size:15px; min-height:100vh; }
+
+  /* HEADER */
+  .header { background:#000; border-bottom:3px solid var(--green); position:sticky; top:0; z-index:100; }
+  .header-inner { max-width:960px; margin:0 auto; padding:8px 24px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .header-sub { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin-top:2px; }
+  .session-badge { font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--green); background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:20px; padding:4px 12px; display:none; }
+  .evaluator-badge { font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); display:none; }
+
+  /* MAIN */
+  .main { max-width:960px; margin:0 auto; padding:32px 24px 80px; }
+  .screen { display:none; }
+  .screen.active { display:block; }
+  .screen-title { font-family:'Barlow Condensed',sans-serif; font-size:42px; font-weight:900; text-transform:uppercase; letter-spacing:2px; color:var(--white); line-height:1; margin-bottom:4px; }
+  .screen-title span { color:var(--green); }
+  .screen-subtitle { color:var(--muted); font-size:14px; letter-spacing:2px; text-transform:uppercase; margin-bottom:36px; }
+
+  /* FORMS */
+  .form-group { display:flex; flex-direction:column; gap:6px; margin-bottom:18px; }
+  .form-label { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); font-weight:600; }
+  .form-input, .form-select { background:var(--card); border:1.5px solid var(--border); color:var(--white); padding:12px 16px; border-radius:8px; font-family:'Barlow',sans-serif; font-size:15px; outline:none; transition:border-color 0.2s; -webkit-appearance:none; width:100%; }
+  .form-input:focus, .form-select:focus { border-color:var(--green); }
+  .form-select option { background:var(--dark); }
+
+  /* BUTTONS */
+  .btn { font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:700; letter-spacing:3px; text-transform:uppercase; padding:14px 32px; border-radius:8px; border:none; cursor:pointer; transition:all 0.2s; }
+  .btn-primary { background:var(--green); color:var(--black); }
+  .btn-primary:hover { background:#16a34a; transform:translateY(-1px); }
+  .btn-secondary { background:transparent; border:2px solid var(--border); color:var(--muted); }
+  .btn-secondary:hover { border-color:var(--muted); color:var(--white); }
+  .btn-row { display:flex; justify-content:space-between; align-items:center; margin-top:32px; gap:12px; flex-wrap:wrap; }
+
+  /* SESSION SCREEN */
+  .session-options { display:flex; flex-direction:column; gap:16px; margin-bottom:32px; }
+  .session-option { background:var(--card); border:1.5px solid var(--border); border-radius:12px; padding:24px; cursor:pointer; transition:all 0.2s; }
+  .session-option:hover, .session-option.selected { border-color:var(--green); background:#1e2d1a; }
+  .session-option-title { font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--white); margin-bottom:4px; }
+  .session-option-desc { font-size:13px; color:var(--muted); }
+  .session-input-wrap { display:none; margin-top:16px; }
+  .session-input-wrap.show { display:block; }
+
+  /* PLAYER LIST */
+  .player-list { display:flex; flex-direction:column; gap:10px; }
+  .player-card { background:var(--card); border:1.5px solid var(--border); border-radius:12px; padding:18px 20px; display:flex; align-items:center; gap:16px; cursor:pointer; transition:all 0.2s; position:relative; }
+  .player-card:hover { border-color:var(--green); transform:translateY(-1px); }
+  .player-card-avatar { width:52px; height:52px; border-radius:10px; object-fit:contain; border:2px solid var(--green); flex-shrink:0; background:var(--border); display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:900; color:var(--green); overflow:hidden; }
+  .player-card-avatar img { width:100%; height:100%; object-fit:contain; }
+  .player-card-info { flex:1; min-width:0; }
+  .player-card-name { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--white); }
+  .player-card-meta { font-size:12px; color:var(--muted); margin-top:2px; }
+  .player-card-progress { display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0; }
+  .progress-ring { font-family:'Barlow Condensed',sans-serif; font-size:24px; font-weight:900; color:var(--green); }
+  .progress-bar-wrap { width:80px; height:5px; background:var(--border); border-radius:3px; overflow:hidden; }
+  .progress-bar-fill { height:100%; background:var(--green); border-radius:3px; transition:width 0.4s; }
+  .eval-count { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); }
+
+  /* SECTION TABS */
+  .section-tabs { display:flex; gap:4px; overflow-x:auto; padding-bottom:4px; margin-bottom:28px; scrollbar-width:none; }
+  .section-tabs::-webkit-scrollbar { display:none; }
+  .section-tab { font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:8px 16px; border-radius:6px; border:1.5px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; white-space:nowrap; transition:all 0.2s; }
+  .section-tab:hover { color:var(--white); border-color:var(--muted); }
+  .section-tab.active { background:var(--green); border-color:var(--green); color:var(--black); }
+  .section-tab.completed { border-color:var(--green-dim); color:var(--green); }
+
+  /* SCORING */
+  .section-header { display:flex; align-items:baseline; gap:16px; margin-bottom:24px; }
+  .section-name { font-family:'Barlow Condensed',sans-serif; font-size:32px; font-weight:900; text-transform:uppercase; letter-spacing:1px; color:var(--white); }
+  .metric-card { background:var(--card); border:1.5px solid var(--border); border-radius:10px; padding:20px 24px; margin-bottom:12px; }
+  .metric-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .metric-name { font-weight:600; font-size:15px; color:var(--white); }
+  .metric-score-display { font-family:'Barlow Condensed',sans-serif; font-size:28px; font-weight:800; color:var(--green); min-width:32px; text-align:right; }
+  .metric-score-display.score-1 { color:var(--red); }
+  .metric-score-display.score-2 { color:var(--amber); }
+  .metric-score-display.score-3 { color:#facc15; }
+  .metric-score-display.score-4 { color:var(--blue); }
+  .metric-score-display.score-5 { color:var(--green); }
+  .score-buttons { display:flex; gap:8px; }
+  .score-btn { flex:1; padding:10px 0; border-radius:6px; border:1.5px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:700; transition:all 0.15s; }
+  .score-btn:hover { border-color:var(--muted); color:var(--white); background:#243047; }
+  .score-btn.selected-1 { background:#7f1d1d; border-color:var(--red); color:var(--red); }
+  .score-btn.selected-2 { background:#78350f; border-color:var(--amber); color:var(--amber); }
+  .score-btn.selected-3 { background:#713f12; border-color:#facc15; color:#facc15; }
+  .score-btn.selected-4 { background:#0c4a6e; border-color:var(--blue); color:var(--blue); }
+  .score-btn.selected-5 { background:#14532d; border-color:var(--green); color:var(--green); }
+  .score-label { display:flex; justify-content:space-between; margin-top:6px; font-size:10px; color:var(--muted); letter-spacing:1px; }
+  .comment-area { background:var(--card); border:1.5px solid var(--border); border-radius:10px; padding:20px 24px; margin-top:24px; }
+  .comment-label { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:10px; font-weight:600; }
+  .comment-input { width:100%; background:#0f1723; border:1.5px solid var(--border); color:var(--white); padding:12px 14px; border-radius:8px; font-family:'Barlow',sans-serif; font-size:14px; resize:vertical; min-height:100px; outline:none; transition:border-color 0.2s; line-height:1.6; }
+  .comment-input:focus { border-color:var(--green); }
+  .section-progress { height:4px; background:var(--border); border-radius:2px; margin-bottom:28px; overflow:hidden; }
+  .section-progress-fill { height:100%; background:linear-gradient(90deg,var(--green-dim),var(--green)); border-radius:2px; transition:width 0.4s; }
+
+  /* GYM */
+  .gym-inputs { display:flex; gap:12px; flex-wrap:wrap; }
+  .gym-field { display:flex; flex-direction:column; gap:4px; }
+  .gym-field label { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-weight:600; }
+  .gym-field input { background:#0f1723; border:1.5px solid var(--border); color:var(--white); padding:8px 12px; border-radius:6px; font-family:'Barlow',sans-serif; font-size:15px; outline:none; width:100px; transition:border-color 0.2s; }
+  .gym-field input:focus { border-color:var(--green); }
+
+  /* REPORT */
+  .report-hero { background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 60%,#0f2d1a 100%); border-radius:16px; padding:36px; margin-bottom:28px; display:flex; gap:28px; align-items:center; border:1.5px solid var(--border); position:relative; overflow:hidden; }
+  .report-hero::before { content:''; position:absolute; top:-30px; right:-30px; width:200px; height:200px; background:radial-gradient(circle,rgba(34,197,94,0.12) 0%,transparent 70%); pointer-events:none; }
+  .report-avatar { width:120px; height:120px; border-radius:12px; border:3px solid var(--green); object-fit:contain; flex-shrink:0; background:var(--card); display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-size:36px; font-weight:900; color:var(--green); }
+  .report-name { font-family:'Barlow Condensed',sans-serif; font-size:40px; font-weight:900; text-transform:uppercase; letter-spacing:2px; color:var(--white); line-height:1; }
+  .report-meta { display:flex; flex-wrap:wrap; gap:16px; margin-top:10px; }
+  .report-meta-item { font-size:12px; letter-spacing:1px; text-transform:uppercase; }
+  .report-meta-item .label { color:var(--muted); }
+  .report-meta-item .value { color:var(--white); font-weight:600; margin-left:6px; }
+  .overall-score { margin-left:auto; text-align:center; flex-shrink:0; }
+  .overall-number { font-family:'Barlow Condensed',sans-serif; font-size:72px; font-weight:900; line-height:1; color:var(--green); }
+  .overall-label { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+  .overall-max { font-size:20px; color:var(--muted); font-family:'Barlow Condensed',sans-serif; }
+  .report-section { background:var(--card); border:1.5px solid var(--border); border-radius:12px; margin-bottom:16px; overflow:hidden; }
+  .report-section-header { padding:16px 24px; background:#0f1723; display:flex; justify-content:space-between; align-items:center; cursor:pointer; border-bottom:1.5px solid var(--border); }
+  .report-section-title { font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+  .report-section-avg { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:800; }
+  .report-section-body { padding:20px 24px; }
+  .report-metric-row { padding:10px 0; border-bottom:1px solid #1e2d45; }
+  .report-metric-row:last-child { border-bottom:none; }
+  .report-metric-name { font-size:14px; color:var(--text); margin-bottom:8px; font-weight:600; }
+  .eval-bars { display:flex; flex-direction:column; gap:5px; }
+  .eval-bar-row { display:flex; align-items:center; gap:10px; }
+  .eval-bar-label { font-size:11px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; width:110px; flex-shrink:0; }
+  .eval-bar-wrap { flex:1; }
+  .eval-bar-bg { height:8px; background:#1e2d45; border-radius:4px; overflow:hidden; }
+  .eval-bar-fill { height:100%; border-radius:4px; transition:width 0.8s cubic-bezier(0.16,1,0.3,1); }
+  .eval-bar-val { font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:700; width:28px; text-align:right; flex-shrink:0; }
+  .avg-bar-row { display:flex; align-items:center; gap:10px; margin-top:4px; padding-top:4px; border-top:1px dashed #243047; }
+  .report-comment { margin-top:12px; padding:12px 16px; background:#0f1723; border-radius:8px; border-left:3px solid var(--green); font-size:14px; color:var(--text); line-height:1.6; }
+  .report-comment .evaluator { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--green); margin-bottom:6px; font-weight:600; }
+  .work-ons { background:linear-gradient(135deg,#0f2d1a,#0a1a0f); border:1.5px solid var(--green-dim); border-radius:12px; padding:24px; margin-bottom:16px; }
+  .work-ons-title { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:800; text-transform:uppercase; letter-spacing:2px; color:var(--green); margin-bottom:16px; }
+  .work-on-item { display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px solid rgba(34,197,94,0.15); font-size:14px; line-height:1.5; }
+  .work-on-item:last-child { border-bottom:none; }
+  .work-on-badge { font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700; letter-spacing:1px; padding:3px 8px; border-radius:4px; background:rgba(239,68,68,0.2); color:var(--red); white-space:nowrap; border:1px solid rgba(239,68,68,0.3); margin-top:1px; }
+  .export-row { display:flex; gap:12px; margin-top:28px; flex-wrap:wrap; }
+  .btn-export { font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:12px 24px; border-radius:8px; border:1.5px solid var(--border); background:var(--card); color:var(--text); cursor:pointer; transition:all 0.2s; }
+  .btn-export:hover { border-color:var(--green); color:var(--green); }
+
+  /* SYNC STATUS */
+  .sync-bar { display:flex; align-items:center; gap:8px; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:16px; }
+  .sync-dot { width:7px; height:7px; border-radius:50%; background:var(--muted); flex-shrink:0; }
+  .sync-dot.live { background:var(--green); animation:pulse-dot 1.5s infinite; }
+  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+
+  /* AUTOSAVE */
+  .autosave-bar { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:#0f2d1a; border:1.5px solid var(--green-dim); border-radius:24px; padding:6px 18px; font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--green); display:flex; align-items:center; gap:8px; z-index:200; opacity:0; transition:opacity 0.4s; pointer-events:none; }
+  .autosave-bar.show { opacity:1; }
+  .autosave-dot { width:7px; height:7px; border-radius:50%; background:var(--green); animation:pulse-dot 1.2s infinite; }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:60px; left:50%; transform:translateX(-50%); background:var(--card); border:1.5px solid var(--green); color:var(--white); padding:10px 24px; border-radius:24px; font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; z-index:300; opacity:0; transition:opacity 0.3s; pointer-events:none; white-space:nowrap; }
+  .toast.show { opacity:1; }
+
+  /* EVAL TAB SWITCHER */
+  .eval-tab { font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:8px 16px; border-radius:20px; border:1.5px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; white-space:nowrap; transition:all 0.2s; }
+  .eval-tab:hover { border-color:var(--muted); color:var(--white); }
+  .eval-tab.active { background:var(--green); border-color:var(--green); color:var(--black); }
+
+  /* SESSION LIST */
+  .session-list-item { background:var(--card); border:1.5px solid var(--border); border-radius:10px; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:pointer; transition:all 0.2s; margin-bottom:8px; }
+  .session-list-item:hover { border-color:var(--green); }
+  .session-list-name { font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--white); }
+  .session-list-meta { font-size:12px; color:var(--muted); margin-top:2px; }
+
+  @media (max-width:600px) {
+    .report-hero { flex-direction:column; }
+    .overall-score { margin-left:0; }
+    .player-card-progress { display:none; }
+  }
+  @media print {
+    .header, .btn-row, .export-row, .section-tabs, .sync-bar, .autosave-bar, .toast { display:none !important; }
+    body { background:#fff; color:#000; }
+    .report-hero { background:#f0f0f0 !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:var(--white);">IRANZ <span style="color:var(--green);">Eval</span></div>
+      <div class="header-sub">Rugby Evaluation System</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+      <div class="session-badge" id="headerSessionBadge"></div>
+      <div class="evaluator-badge" id="headerEvalBadge"></div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 0: JOIN / CREATE SESSION
+════════════════════════════════════════════════════ -->
+<!-- Firebase Setup Banner (shown when not configured) -->
+<div id="firebaseSetup" style="display:none;background:linear-gradient(135deg,#1a1a0a,#2d2000);border:2px solid var(--amber);border-radius:12px;padding:24px;margin-bottom:24px;">
+  <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--amber);margin-bottom:6px;">⚙️ One-Time Setup Required</div>
+  <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6;">
+    To enable live sync across devices, paste your Firebase Realtime Database URL below.<br>
+    <strong style="color:var(--white);">Setup takes 2 minutes:</strong> Go to <a href="https://firebase.google.com" target="_blank" style="color:var(--amber);">firebase.google.com</a> → Create project → Realtime Database → Start in test mode → copy the URL (looks like <code style="color:var(--amber);">https://your-project-default-rtdb.firebaseio.com</code>)
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <input class="form-input" id="firebaseUrlInput" placeholder="https://your-project-default-rtdb.firebaseio.com" style="flex:1;min-width:200px;">
+    <button class="btn btn-primary" style="padding:12px 24px;font-size:14px;white-space:nowrap;" onclick="saveFirebaseUrl()">Save & Continue</button>
+  </div>
+</div>
+
+<div class="screen active" id="screen-0">
+  <div class="screen-title">Welcome to <span>IRANZ</span></div>
+  <div class="screen-subtitle">Join or create an evaluation session</div>
+
+  <!-- Existing sessions -->
+  <div id="recentSessionsWrap" style="margin-bottom:28px;display:none;">
+    <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:12px;">Recent Sessions</div>
+    <div id="recentSessionsList"></div>
+  </div>
+
+  <!-- Create new -->
+  <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--white);margin-bottom:4px;">🆕 Create New Session</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Start a new evaluation session — all evaluators join with the same session name.</div>
+    <div class="form-group">
+      <label class="form-label">Session Name</label>
+      <input class="form-input" id="newSessionName" placeholder="e.g. IRANZ April 2026" maxlength="40">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Your Name (Evaluator)</label>
+      <select class="form-select" id="newSessionEval">
+        <option value="">— Select your name —</option>
+        <option>Colin Cooper</option>
+        <option>Dave Ellis</option>
+        <option>Dominic Bird</option>
+        <option>Harry Godfrey</option>
+        <option>Mark Hammett</option>
+        <option>Nehe Milner-Skudder</option>
+        <option value="__custom__">Other (type below)</option>
+      </select>
+    </div>
+    <div class="form-group" id="customEvalWrap" style="display:none;">
+      <label class="form-label">Custom Name</label>
+      <input class="form-input" id="customEvalName" placeholder="Enter your name">
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="createSession()">Create Session →</button>
+  </div>
+
+  <!-- Join existing -->
+  <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:24px;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--white);margin-bottom:4px;">🔗 Join Existing Session</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Someone already started a session? Enter the session name and your name to join.</div>
+    <div class="form-group">
+      <label class="form-label">Session Name</label>
+      <input class="form-input" id="joinSessionName" placeholder="e.g. IRANZ April 2026" maxlength="40">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Your Name (Evaluator)</label>
+      <select class="form-select" id="joinSessionEval">
+        <option value="">— Select your name —</option>
+        <option>Colin Cooper</option>
+        <option>Dave Ellis</option>
+        <option>Dominic Bird</option>
+        <option>Harry Godfrey</option>
+        <option>Mark Hammett</option>
+        <option>Nehe Milner-Skudder</option>
+        <option value="__custom__">Other (type below)</option>
+      </select>
+    </div>
+    <div class="form-group" id="joinCustomEvalWrap" style="display:none;">
+      <label class="form-label">Custom Name</label>
+      <input class="form-input" id="joinCustomEvalName" placeholder="Enter your name">
+    </div>
+    <div id="joinStatus" style="font-size:13px;color:var(--red);margin-bottom:10px;display:none;"></div>
+    <button class="btn btn-primary" style="width:100%;background:transparent;border:2px solid var(--green);color:var(--green);" onclick="joinSession()">Join Session →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 1: PLAYER LIST
+════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-1">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:8px;">
+    <div>
+      <div class="screen-title">Player <span>List</span></div>
+      <div class="screen-subtitle">Tap a player to evaluate</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <div class="sync-bar"><div class="sync-dot live" id="syncDot"></div><span id="syncStatus">Syncing...</span></div>
+      <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;" onclick="refreshPlayerList()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <div id="playerList" class="player-list" style="margin-bottom:24px;"></div>
+
+  <div style="background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <div style="font-size:13px;color:var(--muted);">Evaluating as <strong style="color:var(--white);" id="currentEvalLabel"></strong></div>
+    <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;" onclick="goToScreen(0)">← Change Session</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 2: EVALUATION
+════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-2">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
+    <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;" onclick="goToScreen(1)">← Back to Players</button>
+    <div>
+      <div class="screen-title" style="font-size:28px;" id="evalPlayerName">Evaluating <span>Player</span></div>
+      <div style="font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;" id="evalPlayerPos"></div>
+    </div>
+  </div>
+
+  <!-- Evaluator switcher -->
+  <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:24px;">
+    <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;">Scoring as</div>
+    <div id="evalSwitcher" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+  </div>
+
+  <div class="section-tabs" id="sectionTabs"></div>
+  <div class="section-progress"><div class="section-progress-fill" id="progressFill"></div></div>
+  <div id="sectionContent"></div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="prevSectionBtn" onclick="prevSection()">← Previous</button>
+    <button class="btn btn-primary" id="nextSectionBtn" onclick="nextSection()">Next Section →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 3: REPORT
+════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-3">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
+    <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;" onclick="goToScreen(1)">← Back to Players</button>
+    <div>
+      <div class="screen-title">Evaluation <span>Report</span></div>
+    </div>
+  </div>
+  <div id="reportContent"></div>
+</div>
+
+</div><!-- /main -->
+
+<div class="toast" id="toast"></div>
+<div class="autosave-bar" id="autosaveBar"><div class="autosave-dot"></div> Saved</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// SECTIONS
+// ══════════════════════════════════════════════════════
+const SECTIONS = [
+  { id:'catch_pass', name:'Catch & Pass', metrics:['Right to Left','Left to Right','Long Pass Right to Left','Long Pass Left to Right','Catch','Transfer','Finish','Body Shape','Run Angle','Halfback Pass'] },
+  { id:'tackle', name:'Tackle', metrics:['Right Shoulder','Left Shoulder','Approach','Feet','Punch & Wrap','Finish','Chop','Chest','Safety','Assist','Jackal'] },
+  { id:'carry', name:'Ball Carry / Evasion', metrics:['Footwork','Leg Drive','Finish','Fend','Carry','Speed','Lines & Angles of Running','1st Support','2nd Support','Decision Making'] },
+  { id:'pos_firstfive', name:'Position — First Five', metrics:['Pass','Triple Threat','Kick','Run','High Ball Catch','Evasive Skills','Communication','Support Lines'] },
+  { id:'pos_fullback_wing', name:'Position — Fullback / Wing / Centres', metrics:['Pass','Triple Threat','Kick','Run','High Ball Catch','Evasive Skills','Communication','Support Lines'] },
+  { id:'pos_halfback', name:'Position — Halfback', metrics:['Pass','Support Lines','Kick','Run','Game Management','Communication'] },
+  { id:'pos_hooker', name:'Position — Hooker', metrics:['Scrum','L/O Throwing','Single Lift - Kick off','Attack Lineout','Defence Lineout'] },
+  { id:'pos_locks', name:'Position — Locks', metrics:['Scrum','Kick Off','Kick Off Receipt','Lineout Defence','Lineout Attack','Charge Downs'] },
+  { id:'pos_flanker', name:'Position — Flanker', metrics:['Scrum','Kick Off','Kick off Receipt','Lineout Defence','Lineout Attack','Charge Downs'] },
+  { id:'pos_midfield', name:'Position — Midfield', metrics:['Pass','Triple Threat','Kick','Run','Game Management','Communication','Support Lines'] },
+  { id:'pos_no8', name:'Position — No. 8', metrics:['Scrum','Scrum Attack (Control, Pass)','Kick off Receipt','Lineout Attack','Lineout Defence','Charge Downs','Kick Off'] },
+  { id:'pos_props', name:'Position — Props', metrics:['Scrum','Kick off Receipt','Defence Lineout','Attack Lineout'] },
+  { id:'hc_firstfive', name:'Head Coach — First Five', metrics:['Role Understanding & Ownership (set up & positioning)','Scan & Communication','Running Lines','Handling Skills (catch, pass, offload)','Defence Strategy Understanding','Pre Tackle Alignment','T1 Tackle - tackle','T2 Tackle - 2nd shoulder, jackal, flood','Support Play & Breakdown'] },
+  { id:'hc_fullback', name:'Head Coach — Fullback', metrics:['Running Lines','Handling Skills (catch, pass, offload)','Defence Strategy Understanding','Role Understanding & Ownership (set up & positioning)','Scan & Communication','Pre Tackle Alignment','T1 Tackle - tackle','T2 Tackle - 2nd shoulder, jackal, flood','Support Play & Breakdown'] },
+  { id:'hc_winger', name:'Head Coach — Winger', metrics:['Role Understanding & Ownership (set up & positioning)','Scan & Communication','Running Lines','Handling Skills (catch, pass, offload)','Defensive Understanding','Pre Tackle Alignment','Tackle Technique (T1)','Breakdown / Effort (T2)','Support Play & Breakdown'] },
+  { id:'hc_halfback', name:'Head Coach — Halfbacks', metrics:['Attack Strategy Understanding','Running Lines','Handling Skills (catch, pass, offload)','Defence Strategy Understanding','Role Understanding & Ownership (set up & positioning)','Scan & Communication','Pre Tackle Alignment','T1 Tackle - tackle','T2 Tackle - 2nd shoulder, jackal, flood','Support Play & Breakdown'] },
+  { id:'hc_hooker', name:'Head Coach — Hooker', metrics:['Set Piece Accuracy (Lineout Throwing)','Role Execution & Positioning','Ball Carry & Collision','Handling Skills','Role Understanding & Ownership (set up & positioning)','Scan & Communication','Pre Tackle Alignment','T1 Tackle - tackle','T2 Tackle - 2nd shoulder, jackal, flood','Support Play & Breakdown'] },
+  { id:'hc_locks', name:'Head Coach — Locks', metrics:['Set Piece Impact (Lineout & Scrum)','Role Execution & Positioning','Ball Carry & Collision','Handling Skills','Role Understanding & Ownership (set up & positioning)','Defensive Understanding','Pre Tackle Alignment','T1 Tackle - tackle','T2 Tackle - 2nd shoulder, jackal, flood','Support Play & Breakdown'] },
+  { id:'hc_flanker', name:'Head Coach — Flanker', metrics:['Role Understanding & Ownership (set up & positioning)','Role Execution & Positioning','Ball Carry & Collision','Breakdown Effectiveness','Handling Skills','Support Play & Work Rate','Scan & Communication','Defensive Understanding','Pre Tackle Alignment','T1 Tackle - tackle','T2 Tackle - 2nd shoulder, jackal, flood'] },
+  { id:'hc_midfield', name:'Head Coach — Midfield', metrics:['Role Understanding & Ownership (set up & positioning)','Scan & Communication','Running Lines','Handling Skills (catch, pass, offload)','Defence Strategy Understanding','Pre Tackle Alignment','T1 Tackle - tackle','T2 Tackle - 2nd shoulder, jackal, flood','Support Play & Breakdown'] },
+  { id:'hc_props', name:'Head Coach — Props', metrics:['Role Understanding & Ownership (set up & positioning)','Running Lines','Handling Skills (catch, pass, offload)','Support Play & Breakdown','Scan & Communication','Pre Tackle Alignment','T1 Tackle - tackle','T2 Tackle - 2nd shoulder, jackal, flood','Support Play & Breakdown'] },
+  { id:'fitness', name:'Fitness & Physical', metrics:['Bronco Time','10m Sprint','30m Sprint'] },
+  { id:'gym_testing', name:'Strength & Conditioning', metrics:['Body Weight (kg)','Bench Press (kg)','Bench Press Reps','Bench Press 1RM','Pull Up','Pull Up Reps','Pull Up 1RM','Squat (kg)','Squat Reps','Squat 1RM'] }
+];
+
+const EVAL_COLORS = ['#22c55e','#38bdf8','#f59e0b','#a78bfa','#fb923c','#f472b6','#34d399'];
+
+const DEFAULT_ROSTER = [
+  { first:'Nganeko',  last:'Luke',          dob:'Nov 13, 2009', gender:'Male',   weight:'88',  height:'180', primaryPos:'10. First Five',       secondaryPos:'12. Inside Centre' },
+  { first:'Nathan',   last:'Dale',          dob:'Jul 10, 2008', gender:'Male',   weight:'75',  height:'175', primaryPos:'10. First Five',       secondaryPos:'15. Fullback' },
+  { first:'Bruno',    last:'Mangiardi',     dob:'May 2, 2010',  gender:'Male',   weight:'81',  height:'185', primaryPos:'8. Number 8',          secondaryPos:'7. Openside Flanker' },
+  { first:'Ihaia',    last:'Wharerau',      dob:'Aug 6, 2009',  gender:'Male',   weight:'84',  height:'183', primaryPos:'7. Openside Flanker',  secondaryPos:'8. Number 8' },
+  { first:'Mitchell', last:'Smith',         dob:'Jan 30, 2009', gender:'Male',   weight:'109', height:'184', primaryPos:'2. Hooker',            secondaryPos:'3. Tighthead Prop' },
+  { first:'Carson',   last:'Fletcher',      dob:'Feb 13, 2010', gender:'Male',   weight:'90',  height:'175', primaryPos:'8. Number 8',          secondaryPos:'7. Openside Flanker' },
+  { first:'Adam',     last:'Skinner',       dob:'Jun 11, 2009', gender:'Male',   weight:'65',  height:'186', primaryPos:'6. Blindside Flanker', secondaryPos:'9. Halfback' },
+  { first:'Jae',      last:'Skinner',       dob:'Jun 11, 2009', gender:'Male',   weight:'75',  height:'203', primaryPos:'4. Lock',              secondaryPos:'5. Lock' },
+  { first:'Kodie',    last:'Watts',         dob:'May 31, 2010', gender:'Male',   weight:'62',  height:'154', primaryPos:'9. Halfback',          secondaryPos:'15. Fullback' },
+  { first:'Torino',   last:'Brodie',        dob:'Dec 24, 2009', gender:'Male',   weight:'90',  height:'173', primaryPos:'2. Hooker',            secondaryPos:'1. Loosehead Prop' },
+  { first:'Cooper',   last:'Gedye',         dob:'May 17, 2008', gender:'Male',   weight:'82',  height:'188', primaryPos:'6. Blindside Flanker', secondaryPos:'5. Lock' },
+  { first:'Hamish',   last:'Reid',          dob:'Mar 31, 2010', gender:'Male',   weight:'100', height:'194', primaryPos:'6. Blindside Flanker', secondaryPos:'4. Lock' },
+  { first:'Pipiana',  last:'Tamehana-Hina', dob:'Sep 11, 2007', gender:'Female', weight:'80',  height:'172', primaryPos:'1. Loosehead Prop',    secondaryPos:'3. Tighthead Prop' },
+  { first:'Connor',   last:'McCleery',      dob:'',             gender:'Male',   weight:'',    height:'',   primaryPos:'',                     secondaryPos:'' }
+];
+
+// ══════════════════════════════════════════════════════
+// SESSION STATE
+// ══════════════════════════════════════════════════════
+let sessionName = '';       // e.g. "IRANZ April 2026"
+let myEvalName = '';        // current evaluator's name
+let currentPlayerKey = '';  // key of player being evaluated
+let currentSection = 0;
+
+// Local cache of the full session data from Firebase
+// Structure: { roster: [...], players: { playerKey: { info:{}, evaluators:{ evalName: { scores:{}, comments:{}, overallComment:'' } } } } }
+let sessionData = { roster: [], players: {} };
+
+let evalIdCounter = 0;
+let syncInterval = null;
+let lastSyncHash = '';
+
+// ── Firebase ──────────────────────────────────────────
+
+
+function sessionKey(name) {
+  return 'session_' + name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+}
+
+// ══════════════════════════════════════════════════════
+// BACKEND — Firebase Realtime Database
+// To set up: firebase.google.com → New project → Realtime Database
+// → Start in test mode → copy your database URL below
+// ══════════════════════════════════════════════════════
+
+// ⚙️ CONFIGURE YOUR FIREBASE URL HERE:
+const FIREBASE_URL = localStorage.getItem('iranz_firebase_url') || 'https://advanced-players-course-default-rtdb.firebaseio.com';
+
+function checkFirebaseConfig() {
+  if (!FIREBASE_URL) {
+    document.getElementById('firebaseSetup').style.display = 'block';
+    return false;
+  }
+  return true;
+}
+
+async function fbGet(path) {
+  const res = await fetch(FIREBASE_URL + path + '.json');
+  if (!res.ok) throw new Error('GET failed ' + res.status);
+  return res.json();
+}
+
+async function fbPut(path, data) {
+  const res = await fetch(FIREBASE_URL + path + '.json', {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error('PUT failed ' + res.status);
+  return res.json();
+}
+
+async function fbPatch(path, data) {
+  const res = await fetch(FIREBASE_URL + path + '.json', {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error('PATCH failed ' + res.status);
+  return res.json();
+}
+
+function saveFirebaseUrl() {
+  const url = document.getElementById('firebaseUrlInput').value.trim().replace(/\/+$/, '');
+  if (!url || !url.startsWith('https://')) { alert('Enter a valid Firebase URL starting with https://'); return; }
+  localStorage.setItem('iranz_firebase_url', url);
+  location.reload();
+}
+
+// ── Custom eval select handlers ───────────────────────
+document.getElementById('newSessionEval').addEventListener('change', function() {
+  document.getElementById('customEvalWrap').style.display = this.value === '__custom__' ? 'block' : 'none';
+});
+document.getElementById('joinSessionEval').addEventListener('change', function() {
+  document.getElementById('joinCustomEvalWrap').style.display = this.value === '__custom__' ? 'block' : 'none';
+});
+
+// ── Recent sessions ───────────────────────────────────
+function getRecentSessions() {
+  try { return JSON.parse(localStorage.getItem('iranz_recent_sessions') || '[]'); } catch(e) { return []; }
+}
+function saveRecentSession(name) {
+  const list = getRecentSessions().filter(s => s !== name);
+  list.unshift(name);
+  localStorage.setItem('iranz_recent_sessions', JSON.stringify(list.slice(0, 5)));
+}
+function renderRecentSessions() {
+  const list = getRecentSessions();
+  const wrap = document.getElementById('recentSessionsWrap');
+  const el = document.getElementById('recentSessionsList');
+  if (!list.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  el.innerHTML = list.map(name => `
+    <div class="session-list-item" onclick="quickJoin('${name.replace(/'/g,"\\'")}')">
+      <div>
+        <div class="session-list-name">${name}</div>
+        <div class="session-list-meta">Tap to rejoin</div>
+      </div>
+      <div style="color:var(--green);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-size:14px;">Rejoin →</div>
+    </div>`).join('');
+}
+
+function quickJoin(name) {
+  document.getElementById('joinSessionName').value = name;
+  document.getElementById('joinSessionName').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  showToast('Enter your name and tap Join');
+}
+
+// ── CREATE SESSION ────────────────────────────────────
+async function createSession() {
+  if (!checkFirebaseConfig()) return;
+  const name = document.getElementById('newSessionName').value.trim();
+  let evalName = document.getElementById('newSessionEval').value;
+  if (evalName === '__custom__') evalName = document.getElementById('customEvalName').value.trim();
+  if (!name) { showToast('Enter a session name'); return; }
+  if (!evalName) { showToast('Select your name'); return; }
+
+  showToast('Creating session...');
+  sessionName = name;
+  myEvalName = evalName;
+
+  try {
+    // Check if session already exists
+    const existing = await fbGet('/' + sessionKey(name));
+    let roster = DEFAULT_ROSTER;
+    if (existing && existing.roster) {
+      // Session exists — just join it
+      sessionData = existing;
+      roster = existing.roster;
+    } else {
+      // Build fresh session with the roster
+      const players = {};
+      DEFAULT_ROSTER.forEach(p => {
+        const pk = playerKey(p);
+        players[pk] = { info: p, evaluators: {} };
+      });
+      sessionData = { roster: DEFAULT_ROSTER, players, createdAt: new Date().toISOString(), sessionName: name };
+      await fbPut('/' + sessionKey(name), sessionData);
+    }
+    saveRecentSession(name);
+    enterSession();
+  } catch(e) {
+    showToast('Connection error — check internet');
+    console.error(e);
+  }
+}
+
+// ── JOIN SESSION ──────────────────────────────────────
+async function joinSession() {
+  if (!checkFirebaseConfig()) return;
+  const name = document.getElementById('joinSessionName').value.trim();
+  let evalName = document.getElementById('joinSessionEval').value;
+  if (evalName === '__custom__') evalName = document.getElementById('joinCustomEvalName').value.trim();
+  if (!name) { showToast('Enter the session name'); return; }
+  if (!evalName) { showToast('Select your name'); return; }
+
+  const statusEl = document.getElementById('joinStatus');
+  statusEl.style.display = 'block';
+  statusEl.textContent = '⏳ Looking up session...';
+  statusEl.style.color = 'var(--muted)';
+
+  try {
+    const data = await fbGet('/' + sessionKey(name));
+    if (!data) {
+      statusEl.textContent = '❌ Session not found. Check the name or create a new one.';
+      statusEl.style.color = 'var(--red)';
+      return;
+    }
+    sessionData = data;
+    sessionName = name;
+    myEvalName = evalName;
+    statusEl.style.display = 'none';
+    saveRecentSession(name);
+    enterSession();
+  } catch(e) {
+    statusEl.textContent = '❌ Connection error. Check your internet.';
+    statusEl.style.color = 'var(--red)';
+    console.error(e);
+  }
+}
+
+function enterSession() {
+  document.getElementById('headerSessionBadge').textContent = '● ' + sessionName;
+  document.getElementById('headerSessionBadge').style.display = 'block';
+  document.getElementById('headerEvalBadge').textContent = myEvalName;
+  document.getElementById('headerEvalBadge').style.display = 'block';
+  document.getElementById('currentEvalLabel').textContent = myEvalName;
+  goToScreen(1);
+  renderPlayerList();
+  startSync();
+}
+
+// ── PLAYER KEY ────────────────────────────────────────
+function playerKey(p) {
+  return (p.first + '_' + p.last).toLowerCase().replace(/[^a-z0-9]+/g, '_');
+}
+
+// ── PLAYER LIST ───────────────────────────────────────
+function renderPlayerList() {
+  const container = document.getElementById('playerList');
+  const roster = (sessionData.roster || DEFAULT_ROSTER);
+  const players = sessionData.players || {};
+
+  container.innerHTML = roster.map(p => {
+    const pk = playerKey(p);
+    const pData = players[pk] || { evaluators: {} };
+    const evalNames = Object.keys(pData.evaluators || {});
+    const myData = pData.evaluators[myEvalName] || {};
+    const myScores = myData.scores || {};
+    const totalMetrics = SECTIONS.filter(s => s.id !== 'fitness' && s.id !== 'gym_testing').reduce((a,s) => a + s.metrics.length, 0);
+    const myDone = Object.keys(myScores).length;
+    const pct = Math.round(myDone / totalMetrics * 100);
+    const initials = (p.first[0] || '') + (p.last[0] || '');
+    const photo = pData.photo || null;
+
+    // Avg score across all evaluators
+    let allVals = [];
+    evalNames.forEach(en => {
+      const sc = (pData.evaluators[en] || {}).scores || {};
+      Object.values(sc).forEach(v => { const n = parseFloat(v); if (!isNaN(n)) allVals.push(n); });
+    });
+    const avg = allVals.length ? (allVals.reduce((a,b)=>a+b,0)/allVals.length).toFixed(1) : null;
+
+    const avatarHtml = photo
+      ? `<img src="${photo}" style="width:100%;height:100%;object-fit:contain;border-radius:10px;">`
+      : initials;
+
+    return `<div class="player-card">
+      <div class="player-card-avatar" style="cursor:pointer;position:relative;" onclick="triggerPhotoUpload('${pk}')" title="Tap to add photo">
+        ${avatarHtml}
+        <div style="position:absolute;bottom:0;right:0;background:var(--green);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:11px;">📷</div>
+        <input type="file" accept="image/*" style="display:none;" id="photo-input-${pk}" onchange="handlePlayerPhoto(this,'${pk}')">
+      </div>
+      <div class="player-card-info" onclick="openPlayer('${pk}')" style="cursor:pointer;">
+        <div class="player-card-name">${p.first} ${p.last}</div>
+        <div class="player-card-meta">${[p.primaryPos, p.weight ? p.weight+'kg' : '', p.height ? p.height+'cm' : ''].filter(Boolean).join(' · ') || 'No details'}</div>
+        <div style="margin-top:6px;font-size:11px;color:var(--muted);">
+          ${evalNames.length ? '👥 ' + evalNames.join(', ') : 'No evaluations yet'}
+          ${myDone > 0 ? ' · <span style="color:var(--green);">You: ' + myDone + '/' + totalMetrics + '</span>' : ''}
+        </div>
+      </div>
+      <div class="player-card-progress" onclick="openPlayer('${pk}')" style="cursor:pointer;">
+        ${avg ? `<div class="progress-ring" style="color:${getScoreColor(avg)}">${avg}</div>` : '<div class="progress-ring" style="color:var(--border)">—</div>'}
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+        <div class="eval-count">${evalNames.length} eval${evalNames.length !== 1 ? 's' : ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function triggerPhotoUpload(pk) {
+  document.getElementById('photo-input-' + pk).click();
+}
+
+function handlePlayerPhoto(input, pk) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const reader = new FileReader();
+  reader.onload = async e => {
+    // Compress image before storing in Firebase
+    const compressed = await compressImage(e.target.result, 400, 0.7);
+    // Store photo in Firebase under the player node
+    if (!sessionData.players) sessionData.players = {};
+    if (!sessionData.players[pk]) {
+      const roster = sessionData.roster || DEFAULT_ROSTER;
+      const p = roster.find(pl => playerKey(pl) === pk);
+      sessionData.players[pk] = { info: p || {}, evaluators: {} };
+    }
+    sessionData.players[pk].photo = compressed;
+    // Push to Firebase
+    try {
+      await fbPut('/' + sessionKey(sessionName) + '/players/' + pk + '/photo', compressed);
+      showToast('Photo saved!');
+      renderPlayerList();
+    } catch(err) {
+      showToast('Photo save failed — try a smaller image');
+      console.error(err);
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function compressImage(dataUrl, maxSize, quality) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if (w > h) { if (w > maxSize) { h = h * maxSize / w; w = maxSize; } }
+      else { if (h > maxSize) { w = w * maxSize / h; h = maxSize; } }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = dataUrl;
+  });
+}
+
+// ── OPEN PLAYER FOR EVALUATION ────────────────────────
+function openPlayer(pk) {
+  currentPlayerKey = pk;
+  currentSection = 0;
+
+  const roster = sessionData.roster || DEFAULT_ROSTER;
+  const p = roster.find(pl => playerKey(pl) === pk);
+  if (!p) return;
+
+  document.getElementById('evalPlayerName').innerHTML = `${p.first} <span>${p.last}</span>`;
+  document.getElementById('evalPlayerPos').textContent = p.primaryPos || '';
+
+  // Ensure player exists in sessionData
+  if (!sessionData.players) sessionData.players = {};
+  if (!sessionData.players[pk]) sessionData.players[pk] = { info: p, evaluators: {} };
+  if (!sessionData.players[pk].evaluators[myEvalName]) {
+    sessionData.players[pk].evaluators[myEvalName] = { scores: {}, comments: {}, overallComment: '' };
+  }
+
+  buildEvalSwitcher();
+  buildSectionTabs();
+  renderSection(0);
+  goToScreen(2);
+}
+
+// ── EVAL SWITCHER (view other evaluators' scores) ─────
+function buildEvalSwitcher() {
+  const sw = document.getElementById('evalSwitcher');
+  const pData = (sessionData.players[currentPlayerKey] || {});
+  const evalNames = Object.keys(pData.evaluators || {});
+  // Always include myself
+  if (!evalNames.includes(myEvalName)) evalNames.unshift(myEvalName);
+
+  sw.innerHTML = evalNames.map((name, i) => {
+    const isMe = name === myEvalName;
+    const color = EVAL_COLORS[i % EVAL_COLORS.length];
+    return `<button class="eval-tab ${isMe ? 'active' : ''}"
+      style="${isMe ? 'background:'+color+';border-color:'+color+';color:#000;' : 'border-color:'+color+';color:'+color+';'}"
+      onclick="switchEvalView('${name}')">${name}${isMe ? ' (you)' : ''}</button>`;
+  }).join('');
+}
+
+let viewingEval = ''; // which evaluator's scores are being viewed
+function switchEvalView(name) {
+  viewingEval = name;
+  buildEvalSwitcher();
+  renderSection(currentSection);
+}
+
+function getViewingEvalData() {
+  const pData = sessionData.players[currentPlayerKey] || {};
+  const ev = pData.evaluators || {};
+  // If viewing another evaluator, show read-only; default to self
+  const name = viewingEval || myEvalName;
+  return ev[name] || { scores: {}, comments: {}, overallComment: '' };
+}
+
+function getMyEvalData() {
+  if (!sessionData.players[currentPlayerKey]) return { scores: {}, comments: {}, overallComment: '' };
+  if (!sessionData.players[currentPlayerKey].evaluators) return { scores: {}, comments: {}, overallComment: '' };
+  return sessionData.players[currentPlayerKey].evaluators[myEvalName] || { scores: {}, comments: {}, overallComment: '' };
+}
+
+// ── SECTION TABS ──────────────────────────────────────
+function buildSectionTabs() {
+  const tabs = document.getElementById('sectionTabs');
+  const myData = getMyEvalData();
+  tabs.innerHTML = SECTIONS.map((s, i) => `
+    <button class="section-tab ${i === currentSection ? 'active' : isSectionComplete(i, myData) ? 'completed' : ''}"
+      id="tab-${i}" onclick="goToSectionTab(${i})">${s.name}</button>`).join('');
+}
+
+function goToSectionTab(idx) { currentSection = idx; renderSection(idx); }
+function prevSection() { if (currentSection > 0) { currentSection--; renderSection(currentSection); window.scrollTo(0,0); pushMyScores(); } }
+function nextSection() {
+  pushMyScores();
+  if (currentSection < SECTIONS.length - 1) { currentSection++; renderSection(currentSection); window.scrollTo(0,0); }
+  else { generateReport(); goToScreen(3); }
+}
+
+function isSectionComplete(idx, evalData) {
+  const sec = SECTIONS[idx];
+  if (!sec.metrics.length || sec.id === 'gym_testing') return true;
+  const scores = evalData.scores || {};
+  return sec.metrics.every(m => scores[sec.id + '_' + m] != null);
+}
+
+// ── RENDER SECTION ────────────────────────────────────
+function renderSection(idx) {
+  const sec = SECTIONS[idx];
+  currentSection = idx;
+  const isViewingMe = !viewingEval || viewingEval === myEvalName;
+  const evData = getViewingEvalData();
+  const myData = getMyEvalData();
+  const readonly = !isViewingMe;
+
+  document.querySelectorAll('.section-tab').forEach((t, i) => {
+    t.classList.remove('active', 'completed');
+    if (i === idx) t.classList.add('active');
+    else if (isSectionComplete(i, myData)) t.classList.add('completed');
+  });
+
+  const filled = sec.metrics.filter(m => myData.scores && myData.scores[sec.id+'_'+m] != null).length;
+  document.getElementById('progressFill').style.width = sec.metrics.length ? (filled/sec.metrics.length*100)+'%' : '100%';
+  document.getElementById('prevSectionBtn').style.visibility = idx > 0 ? 'visible' : 'hidden';
+  document.getElementById('nextSectionBtn').textContent = idx === SECTIONS.length-1 ? 'Generate Report →' : 'Next Section →';
+
+  const isFitness = sec.id === 'fitness';
+  const isGym = sec.id === 'gym_testing';
+
+  const GYM_FIELDS = {
+    'Body Weight (kg)': [{label:'kg',suffix:'kg'}],
+    'Bench Press (kg)': [{label:'kg',suffix:'kg'},{label:'Reps',suffix:'reps'},{label:'1RM',suffix:'1rm'}],
+    'Bench Press Reps': null, 'Bench Press 1RM': null,
+    'Pull Up': [{label:'Reps',suffix:'reps'},{label:'1RM',suffix:'1rm'}],
+    'Pull Up Reps': null, 'Pull Up 1RM': null,
+    'Squat (kg)': [{label:'kg',suffix:'kg'},{label:'Reps',suffix:'reps'},{label:'1RM',suffix:'1rm'}],
+    'Squat Reps': null, 'Squat 1RM': null,
+  };
+
+  let html = `<div class="section-header"><div class="section-name">${sec.name}</div></div>`;
+  if (readonly) html += `<div style="background:#0c4a6e;border:1px solid var(--blue);border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:13px;color:var(--blue);">👁 Viewing ${viewingEval}'s scores — read only</div>`;
+
+  html += sec.metrics.map(m => {
+    const key = sec.id + '_' + m;
+    const score = evData.scores ? evData.scores[key] : null;
+
+    if (isGym) {
+      const fields = GYM_FIELDS[m];
+      if (fields === null) return '';
+      const inputsHtml = fields.map(f => {
+        const fkey = key + '_' + f.suffix;
+        const val = evData.scores ? (evData.scores[fkey] || '') : '';
+        return `<div class="gym-field"><label>${f.label}</label>
+          <input type="number" min="0" step="0.1" placeholder="0" value="${val}" ${readonly ? 'disabled' : ''}
+            oninput="setMyScore('${fkey}', this.value)"></div>`;
+      }).join('');
+      return `<div class="metric-card"><div class="metric-top"><div class="metric-name" style="font-size:16px;">${m}</div></div><div class="gym-inputs">${inputsHtml}</div></div>`;
+    }
+
+    if (isFitness) {
+      const val = evData.scores ? (evData.scores[key] || '') : '';
+      return `<div class="metric-card">
+        <div class="metric-top"><div class="metric-name">${m}</div></div>
+        <input class="form-input" placeholder="${m === 'Bronco Time' ? 'e.g. 4:52' : 'Enter value'}" value="${val}"
+          style="max-width:200px;" ${readonly ? 'disabled' : ''}
+          oninput="setMyScore('${key}', this.value)">
+      </div>`;
+    }
+
+    return `<div class="metric-card" id="mc-${key}">
+      <div class="metric-top">
+        <div class="metric-name">${m}</div>
+        <div class="metric-score-display ${score ? 'score-'+score : ''}" id="disp-${key}">${score || '—'}</div>
+      </div>
+      <div class="score-buttons">
+        ${[1,2,3,4,5].map(n => `<button class="score-btn ${score==n ? 'selected-'+n : ''}"
+          id="sb-${key}-${n}" ${readonly ? 'disabled style="opacity:0.4;cursor:default;"' : ''}
+          onclick="${readonly ? '' : `setScore('${key}',${n},'${sec.id}')`}">${n}</button>`).join('')}
+      </div>
+      <div class="score-label"><span>Needs Work</span><span>Excellent</span></div>
+    </div>`;
+  }).join('');
+
+  const commentVal = evData.comments ? (evData.comments[sec.id] || '') : '';
+  html += `<div class="comment-area">
+    <div class="comment-label">Comments — ${viewingEval || myEvalName} — ${sec.name}</div>
+    <textarea class="comment-input" placeholder="Add coaching notes..." ${readonly ? 'disabled' : ''}
+      oninput="setMyComment('${sec.id}', this.value)">${commentVal}</textarea>
+  </div>`;
+
+  document.getElementById('sectionContent').innerHTML = html;
+  // Reset viewing if not set
+  if (!viewingEval) viewingEval = myEvalName;
+  buildEvalSwitcher();
+}
+
+// ── SET SCORES ────────────────────────────────────────
+function setScore(key, score, secId) {
+  setMyScore(key, score);
+  // Update UI
+  const disp = document.getElementById('disp-'+key);
+  if (disp) { disp.textContent = score; disp.className = 'metric-score-display score-'+score; }
+  for (let n=1; n<=5; n++) {
+    const btn = document.getElementById('sb-'+key+'-'+n);
+    if (btn) btn.className = 'score-btn' + (n==score ? ' selected-'+n : '');
+  }
+  const sec = SECTIONS.find(s => s.id === secId);
+  if (sec) {
+    const myData = getMyEvalData();
+    const filled = sec.metrics.filter(m => myData.scores && myData.scores[sec.id+'_'+m] != null).length;
+    document.getElementById('progressFill').style.width = (filled/sec.metrics.length*100)+'%';
+  }
+  schedulePush();
+}
+
+function setMyScore(key, value) {
+  ensureMyData();
+  sessionData.players[currentPlayerKey].evaluators[myEvalName].scores[key] = value;
+  schedulePush();
+}
+
+function setMyComment(secId, value) {
+  ensureMyData();
+  sessionData.players[currentPlayerKey].evaluators[myEvalName].comments[secId] = value;
+  schedulePush();
+}
+
+function ensureMyData() {
+  if (!sessionData.players) sessionData.players = {};
+  if (!sessionData.players[currentPlayerKey]) {
+    const roster = sessionData.roster || DEFAULT_ROSTER;
+    const p = roster.find(pl => playerKey(pl) === currentPlayerKey);
+    sessionData.players[currentPlayerKey] = { info: p || {}, evaluators: {} };
+  }
+  if (!sessionData.players[currentPlayerKey].evaluators) sessionData.players[currentPlayerKey].evaluators = {};
+  if (!sessionData.players[currentPlayerKey].evaluators[myEvalName]) {
+    sessionData.players[currentPlayerKey].evaluators[myEvalName] = { scores: {}, comments: {}, overallComment: '' };
+  }
+}
+
+// ── PUSH TO FIREBASE ──────────────────────────────────
+let _pushTimer = null;
+function schedulePush() {
+  clearTimeout(_pushTimer);
+  _pushTimer = setTimeout(pushMyScores, 1000);
+  showAutosave();
+}
+
+async function pushMyScores() {
+  if (!sessionName || !currentPlayerKey || !myEvalName) return;
+  try {
+    const myData = getMyEvalData();
+    const path = '/' + sessionKey(sessionName) + '/players/' + currentPlayerKey + '/evaluators/' + encodeEvalName(myEvalName);
+    await fbPut(path, myData);
+  } catch(e) { console.error('push failed', e); }
+}
+
+function encodeEvalName(name) {
+  return name.replace(/[.#$/[\]]/g, '_');
+}
+
+// ── SYNC FROM FIREBASE ────────────────────────────────
+function startSync() {
+  if (syncInterval) clearInterval(syncInterval);
+  syncInterval = setInterval(syncSession, 8000);
+  syncSession(); // immediate
+}
+
+async function syncSession() {
+  if (!sessionName) return;
+  try {
+    const data = await fbGet('/' + sessionKey(sessionName));
+    if (!data) return;
+    // Merge: preserve our own data, take remote data for others
+    if (data.players) {
+      Object.keys(data.players).forEach(pk => {
+        if (!sessionData.players) sessionData.players = {};
+        if (!sessionData.players[pk]) sessionData.players[pk] = { info: {}, evaluators: {} };
+        const remoteEvals = data.players[pk].evaluators || {};
+        Object.keys(remoteEvals).forEach(en => {
+          const decoded = en.replace(/_/g, ' '); // rough decode
+          // Don't overwrite our own data with stale remote
+          if (decoded !== myEvalName && en !== encodeEvalName(myEvalName)) {
+            if (!sessionData.players[pk].evaluators) sessionData.players[pk].evaluators = {};
+            sessionData.players[pk].evaluators[decoded] = remoteEvals[en];
+          }
+        });
+        if (data.players[pk].info) sessionData.players[pk].info = data.players[pk].info;
+      });
+    }
+    if (data.roster) sessionData.roster = data.roster;
+
+    const t = new Date().toLocaleTimeString('en-NZ', {hour:'2-digit', minute:'2-digit'});
+    document.getElementById('syncStatus').textContent = 'Synced ' + t;
+    document.getElementById('syncDot').className = 'sync-dot live';
+
+    // Refresh player list if on that screen
+    if (document.getElementById('screen-1').classList.contains('active')) renderPlayerList();
+    // Refresh eval switcher if scoring
+    if (document.getElementById('screen-2').classList.contains('active')) buildEvalSwitcher();
+
+  } catch(e) {
+    document.getElementById('syncDot').className = 'sync-dot';
+    document.getElementById('syncStatus').textContent = 'Offline';
+    console.error('sync failed', e);
+  }
+}
+
+async function refreshPlayerList() {
+  document.getElementById('syncStatus').textContent = 'Refreshing...';
+  await syncSession();
+  renderPlayerList();
+}
+
+// ══════════════════════════════════════════════════════
+// REPORT
+// ══════════════════════════════════════════════════════
+function getScoreColor(score) {
+  if (!score || isNaN(score)) return 'var(--muted)';
+  const n = parseFloat(score);
+  if (n < 2) return 'var(--red)';
+  if (n < 3) return 'var(--amber)';
+  if (n < 4) return '#facc15';
+  if (n < 5) return 'var(--blue)';
+  return 'var(--green)';
+}
+
+function crossAvg(players_evals, key) {
+  const vals = Object.values(players_evals).map(ev => parseFloat((ev.scores || {})[key])).filter(v => !isNaN(v));
+  return vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : null;
+}
+
+function generateReport() {
+  const pData = sessionData.players[currentPlayerKey] || { evaluators: {} };
+  const roster = sessionData.roster || DEFAULT_ROSTER;
+  const p = roster.find(pl => playerKey(pl) === currentPlayerKey) || {};
+  const evaluators = pData.evaluators || {};
+  const evalNames = Object.keys(evaluators);
+  const multiEval = evalNames.length > 1;
+
+  // Overall avg
+  let allVals = [];
+  SECTIONS.filter(s => s.id !== 'fitness' && s.id !== 'gym_testing').forEach(sec => {
+    sec.metrics.forEach(m => {
+      const avg = crossAvg(evaluators, sec.id+'_'+m);
+      if (avg) allVals.push(parseFloat(avg));
+    });
+  });
+  const overallAvg = allVals.length ? (allVals.reduce((a,b)=>a+b,0)/allVals.length).toFixed(1) : null;
+
+  const initials = ((p.first||'')[0]||'') + ((p.last||'')[0]||'');
+  const photo = pData.photo || null;
+  let html = `<div class="report-hero">
+    ${photo
+      ? `<img src="${photo}" class="report-avatar" style="object-fit:contain;">`
+      : `<div class="report-avatar">${initials}</div>`}
+    <div style="flex:1;">
+      <div class="report-name">${p.first || ''} ${p.last || ''}</div>
+      <div class="report-meta">
+        ${p.primaryPos ? `<div class="report-meta-item"><span class="label">Position</span><span class="value">${p.primaryPos}</span></div>` : ''}
+        ${p.weight ? `<div class="report-meta-item"><span class="label">Weight</span><span class="value">${p.weight}kg</span></div>` : ''}
+        ${p.height ? `<div class="report-meta-item"><span class="label">Height</span><span class="value">${p.height}cm</span></div>` : ''}
+        ${p.dob ? `<div class="report-meta-item"><span class="label">DOB</span><span class="value">${p.dob}</span></div>` : ''}
+        <div class="report-meta-item"><span class="label">Session</span><span class="value">${sessionName}</span></div>
+      </div>
+    </div>
+    ${overallAvg ? `<div class="overall-score">
+      <div class="overall-number" style="color:${getScoreColor(overallAvg)}">${overallAvg}</div>
+      <div class="overall-max"><span style="font-size:14px;color:var(--muted);">/5</span></div>
+      <div class="overall-label">Overall Avg</div>
+    </div>` : ''}
+  </div>`;
+
+  // Evaluator pills
+  if (evalNames.length) {
+    html += `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+      ${evalNames.map((n,i) => `<span style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 14px;border-radius:20px;border:1.5px solid ${EVAL_COLORS[i%EVAL_COLORS.length]};color:${EVAL_COLORS[i%EVAL_COLORS.length]};background:${EVAL_COLORS[i%EVAL_COLORS.length]}11;">◎ ${n}</span>`).join('')}
+    </div>`;
+  }
+
+  // Work-ons
+  let workOns = [];
+  SECTIONS.filter(s => s.id !== 'fitness' && s.id !== 'gym_testing').forEach(sec => {
+    sec.metrics.forEach(m => {
+      const avg = crossAvg(evaluators, sec.id+'_'+m);
+      if (avg && parseFloat(avg) <= 2) workOns.push({ metric: m, section: sec.name, score: parseFloat(avg) });
+    });
+  });
+  workOns.sort((a,b) => a.score-b.score);
+  if (workOns.length) {
+    html += `<div class="work-ons"><div class="work-ons-title">⚠️ Areas to Work On</div>
+      ${workOns.slice(0,6).map(w => `<div class="work-on-item">
+        <div class="work-on-badge">${w.score.toFixed(1)}</div>
+        <div><strong style="color:var(--white);">${w.metric}</strong><br><span style="color:var(--muted);font-size:12px;">${w.section}</span></div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  // Sections
+  SECTIONS.forEach(sec => {
+    const isFitness = sec.id === 'fitness';
+    const isGym = sec.id === 'gym_testing';
+    const RPT_GYM_FIELDS = {
+      'Body Weight (kg)':[{label:'kg',suffix:'kg'}],'Bench Press (kg)':[{label:'kg',suffix:'kg'},{label:'Reps',suffix:'reps'},{label:'1RM',suffix:'1rm'}],
+      'Bench Press Reps':null,'Bench Press 1RM':null,'Pull Up':[{label:'Reps',suffix:'reps'},{label:'1RM',suffix:'1rm'}],
+      'Pull Up Reps':null,'Pull Up 1RM':null,'Squat (kg)':[{label:'kg',suffix:'kg'},{label:'Reps',suffix:'reps'},{label:'1RM',suffix:'1rm'}],
+      'Squat Reps':null,'Squat 1RM':null
+    };
+
+    let displayAvg = null;
+    if (!isFitness && !isGym && sec.metrics.length) {
+      const vals = sec.metrics.map(m => parseFloat(crossAvg(evaluators, sec.id+'_'+m))).filter(v=>!isNaN(v));
+      displayAvg = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : null;
+    }
+
+    html += `<div class="report-section">
+      <div class="report-section-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <div class="report-section-title">${sec.name}</div>
+        <div class="report-section-avg" style="color:${displayAvg?getScoreColor(displayAvg):'var(--muted)'}">${displayAvg||(isGym?'📊':'—')}</div>
+      </div>
+      <div class="report-section-body">
+        ${sec.metrics.map(m => {
+          const key = sec.id+'_'+m;
+          if (isGym) {
+            const fields = RPT_GYM_FIELDS[m];
+            if (fields === null) return '';
+            const evalRows = evalNames.map((n,i) => {
+              const color = EVAL_COLORS[i%EVAL_COLORS.length];
+              const cells = fields.map(f => {
+                const fkey = key+'_'+f.suffix;
+                const val = (evaluators[n]?.scores||{})[fkey];
+                return `<span style="margin-right:16px;font-size:13px;color:${color}"><span style="color:var(--muted);font-size:11px;text-transform:uppercase;">${f.label}</span> <strong style="font-size:16px;">${val||'—'}</strong></span>`;
+              }).join('');
+              return `<div style="margin-bottom:6px;"><span style="font-size:11px;color:${color};letter-spacing:1px;text-transform:uppercase;margin-right:10px;">◎ ${n}</span>${cells}</div>`;
+            }).join('');
+            return `<div class="report-metric-row"><div class="report-metric-name" style="color:var(--green);font-size:13px;letter-spacing:1.5px;margin-bottom:8px;">${m}</div>${evalRows}</div>`;
+          }
+          if (isFitness) {
+            return `<div class="report-metric-row">
+              <div class="report-metric-name">${m}</div>
+              <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;">
+                ${evalNames.map((n,i) => `<span style="font-size:13px;color:${EVAL_COLORS[i%EVAL_COLORS.length]};">${n}: <strong>${(evaluators[n]?.scores||{})[key]||'—'}</strong></span>`).join('')}
+              </div>
+            </div>`;
+          }
+          const avg = crossAvg(evaluators, key);
+          return `<div class="report-metric-row">
+            <div class="report-metric-name">${m}</div>
+            <div class="eval-bars">
+              ${evalNames.map((n,i) => {
+                const val = (evaluators[n]?.scores||{})[key];
+                return `<div class="eval-bar-row">
+                  <div class="eval-bar-label" style="color:${EVAL_COLORS[i%EVAL_COLORS.length]}">${n}</div>
+                  <div class="eval-bar-wrap"><div class="eval-bar-bg"><div class="eval-bar-fill" style="width:${val?val/5*100:0}%;background:${EVAL_COLORS[i%EVAL_COLORS.length]}"></div></div></div>
+                  <div class="eval-bar-val" style="color:${EVAL_COLORS[i%EVAL_COLORS.length]}">${val||'—'}</div>
+                </div>`;
+              }).join('')}
+              ${multiEval && avg ? `<div class="avg-bar-row">
+                <div class="eval-bar-label" style="color:var(--white);font-weight:600;">AVG</div>
+                <div class="eval-bar-wrap"><div class="eval-bar-bg"><div class="eval-bar-fill" style="width:${parseFloat(avg)/5*100}%;background:${getScoreColor(avg)}"></div></div></div>
+                <div class="eval-bar-val" style="color:${getScoreColor(avg)}">${avg}</div>
+              </div>` : ''}
+            </div>
+          </div>`;
+        }).join('')}
+        ${evalNames.filter(n => evaluators[n]?.comments?.[sec.id]).map((n,i) => `
+          <div class="report-comment">
+            <div class="evaluator" style="color:${EVAL_COLORS[i%EVAL_COLORS.length]}">◎ ${n}</div>
+            ${evaluators[n].comments[sec.id]}
+          </div>`).join('')}
+      </div>
+    </div>`;
+  });
+
+  // Overall comment box
+  const myOverall = getMyEvalData().overallComment || '';
+  html += `<div style="background:linear-gradient(135deg,#0f172a,#0a2010);border:2px solid var(--green);border-radius:12px;padding:28px;margin-bottom:16px;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--white);margin-bottom:16px;">📝 Overall Notes</div>
+    ${evalNames.filter(n => n !== myEvalName && evaluators[n]?.overallComment).map((n,i) => `
+      <div class="report-comment" style="margin-bottom:10px;">
+        <div class="evaluator" style="color:${EVAL_COLORS[i%EVAL_COLORS.length]}">◎ ${n}</div>
+        ${evaluators[n].overallComment}
+      </div>`).join('')}
+    <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;">Your Notes</div>
+    <textarea class="comment-input" style="min-height:100px;" placeholder="Add your overall coaching notes..."
+      oninput="setOverallComment(this.value)">${myOverall}</textarea>
+  </div>`;
+
+  html += `<div class="export-row">
+    <button class="btn-export" onclick="downloadPDF()">⬇️ Download PDF</button>
+    <button class="btn-export" onclick="window.print()">🖨 Print Report</button>
+  </div>
+  <div style="background:linear-gradient(135deg,#0f2d1a,#0a1a10);border:2px solid var(--green);border-radius:14px;padding:28px 32px;margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;">
+    <div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:var(--white);margin-bottom:4px;">Ready for the next player?</div>
+      <div style="font-size:13px;color:var(--muted);">Scores are saved. Go back to the player list.</div>
+    </div>
+    <button class="btn btn-primary" style="font-size:18px;padding:16px 36px;white-space:nowrap;" onclick="goToScreen(1)">← Player List</button>
+  </div>`;
+
+  document.getElementById('reportContent').innerHTML = html;
+}
+
+function setOverallComment(val) {
+  ensureMyData();
+  sessionData.players[currentPlayerKey].evaluators[myEvalName].overallComment = val;
+  schedulePush();
+}
+
+// ── NAVIGATION ────────────────────────────────────────
+function goToScreen(n) {
+  document.querySelectorAll('.screen').forEach((s,i) => s.classList.toggle('active', i===n));
+  window.scrollTo(0,0);
+  if (n === 0) { renderRecentSessions(); if (syncInterval) { clearInterval(syncInterval); syncInterval = null; } }
+  if (n === 1) renderPlayerList();
+}
+
+// ── UTILS ─────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function showAutosave() {
+  const bar = document.getElementById('autosaveBar');
+  bar.classList.add('show');
+  setTimeout(() => bar.classList.remove('show'), 1500);
+}
+
+// ── PDF DOWNLOAD ──────────────────────────────────────
+async function downloadPDF() {
+  showToast('Generating PDF…');
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+  const { jsPDF } = window.jspdf;
+  const reportEl = document.getElementById('reportContent');
+  const hidden = reportEl.querySelectorAll('.export-row, button');
+  hidden.forEach(el => el.style.visibility = 'hidden');
+  try {
+    const canvas = await html2canvas(reportEl, { scale:2, backgroundColor:'#0a0a0a', useCORS:true, logging:false });
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const imgH = (canvas.height * pageW) / canvas.width;
+    let remaining = imgH;
+    while (remaining > 0) {
+      const sliceH = Math.min(remaining, pageH);
+      const sy = ((imgH - remaining) / imgH) * canvas.height;
+      const sh = (sliceH / imgH) * canvas.height;
+      const sc = document.createElement('canvas');
+      sc.width = canvas.width; sc.height = sh;
+      sc.getContext('2d').drawImage(canvas, 0, sy, canvas.width, sh, 0, 0, canvas.width, sh);
+      if (remaining === imgH) pdf.addImage(sc.toDataURL('image/jpeg',0.92), 'JPEG', 0, 0, pageW, sliceH);
+      else { pdf.addPage(); pdf.addImage(sc.toDataURL('image/jpeg',0.92), 'JPEG', 0, 0, pageW, sliceH); }
+      remaining -= sliceH;
+    }
+    const roster = sessionData.roster || DEFAULT_ROSTER;
+    const p = roster.find(pl => playerKey(pl) === currentPlayerKey) || {};
+    pdf.save(((p.first||'') + '_' + (p.last||'') + '_report.pdf').replace(/\s+/g,'_'));
+    showToast('PDF Downloaded!');
+  } catch(e) { showToast('PDF failed — use Print instead'); }
+  finally { hidden.forEach(el => el.style.visibility = ''); }
+}
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+// ── INIT ──────────────────────────────────────────────
+renderRecentSessions();
+// Show Firebase setup if not configured
+if (!localStorage.getItem('iranz_firebase_url')) {
+  document.getElementById('firebaseSetup').style.display = 'block';
+} else {
+  // Pre-fill the input with current URL in case they want to change it
+  document.getElementById('firebaseUrlInput').value = localStorage.getItem('iranz_firebase_url') || '';
+}
+</script>
+</body>
+</html>
