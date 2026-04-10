@@ -228,7 +228,10 @@
 
   <!-- Existing sessions -->
   <div id="recentSessionsWrap" style="margin-bottom:28px;display:none;">
-    <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:12px;">Recent Sessions</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;">Recent Sessions</div>
+      <button onclick="clearRecentSessions()" style="background:none;border:none;color:var(--muted);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕ Clear</button>
+    </div>
     <div id="recentSessionsList"></div>
   </div>
 
@@ -470,6 +473,11 @@ function saveRecentSession(name) {
   const list = getRecentSessions().filter(s => s !== name);
   list.unshift(name);
   localStorage.setItem('iranz_coaches_recent_sessions', JSON.stringify(list.slice(0, 5)));
+}
+
+function clearRecentSessions() {
+  localStorage.removeItem('iranz_coaches_recent_sessions');
+  renderRecentSessions();
 }
 function renderRecentSessions() {
   const list = getRecentSessions();
