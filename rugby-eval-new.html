@@ -1223,6 +1223,22 @@ function generateReport() {
   SECTIONS.forEach(sec => {
     const isFitness = sec.id === 'fitness';
     const isGym = sec.id === 'gym_testing';
+
+    // Skip section if no evaluator has any scores or comments for it
+    const hasAnyScore = sec.metrics.some(m => {
+      const key = sec.id + '_' + m;
+      return evalNames.some(n => {
+        const scores = (evaluators[n]?.scores || {});
+        if (isGym) {
+          return ['kg','reps','1rm'].some(suf => scores[key+'_'+suf]);
+        }
+        return scores[key] != null;
+      });
+    });
+    const hasAnyComment = evalNames.some(n => evaluators[n]?.comments?.[sec.id]);
+    const hasAnyFitness = isFitness && sec.metrics.some(m => evalNames.some(n => (evaluators[n]?.scores||{})[sec.id+'_'+m]));
+
+    if (!hasAnyScore && !hasAnyComment && !hasAnyFitness) return; // skip empty sections
     const RPT_GYM_FIELDS = {
       'Body Weight (kg)':[{label:'kg',suffix:'kg'}],'Bench Press (kg)':[{label:'kg',suffix:'kg'},{label:'Reps',suffix:'reps'},{label:'1RM',suffix:'1rm'}],
       'Bench Press Reps':null,'Bench Press 1RM':null,'Pull Up':[{label:'Reps',suffix:'reps'},{label:'1RM',suffix:'1rm'}],
@@ -1267,6 +1283,9 @@ function generateReport() {
             </div>`;
           }
           const avg = crossAvg(evaluators, key);
+          // Skip metric if no evaluator scored it
+          const hasScore = evalNames.some(n => (evaluators[n]?.scores||{})[key] != null);
+          if (!hasScore) return '';
           return `<div class="report-metric-row">
             <div class="report-metric-name">${m}</div>
             <div class="eval-bars">

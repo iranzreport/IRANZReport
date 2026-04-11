@@ -411,8 +411,26 @@ const SECTIONS = [
     'Was prepared to listen to other points of view',
     "Was effective in feeding back or presenting a group's findings"
   ]},
+  { id:'mgmt_organisation', name:'Management & Organisation', metrics:[
+    'Planned and prepared',
+    'Well organised',
+    'Able to keep to time allocated',
+    'Punctual'
+  ]},
+  { id:'coach_presentation', name:'Coach Presentation', metrics:[
+    'Was able to provide a structured presentation',
+    'Used material that was relevant and informative',
+    'Used appropriate equipment and aids',
+    'Was organised and able to keep to time',
+    'Was an effective communicator',
+    'Achieved the aims of the presentation',
+    'Prepared activities relevant to the players',
+    'Communicated effectively with the players',
+    'Was technically accurate'
+  ]},
   { id:'comm_behaviour', name:'Communication & Coach Behaviour', metrics:[] },
-  { id:'rugby_content', name:'Rugby Content', metrics:[] }
+  { id:'rugby_content', name:'Rugby Content', metrics:[] },
+  { id:'coach_playbook', name:'Coach Playbook', metrics:[] }
 ];
 
 const EVAL_COLORS = ['#22c55e','#38bdf8','#f59e0b','#a78bfa','#fb923c','#f472b6','#34d399'];
@@ -731,7 +749,52 @@ function compressImage(dataUrl, maxSize, quality) {
   });
 }
 
-// ── EDIT COACH ────────────────────────────────────────
+// ── COACH PLAYBOOK ────────────────────────────────────
+async function addPlaybookImages(input) {
+  if (!input.files || !input.files.length) return;
+  showToast('Uploading images...');
+  if (!sessionData.players[currentPlayerKey]) ensureMyData();
+  if (!sessionData.players[currentPlayerKey].playbook) sessionData.players[currentPlayerKey].playbook = [];
+
+  for (const file of Array.from(input.files)) {
+    const reader = new FileReader();
+    await new Promise(resolve => {
+      reader.onload = async e => {
+        const compressed = await compressImage(e.target.result, 800, 0.8);
+        sessionData.players[currentPlayerKey].playbook.push(compressed);
+        resolve();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  try {
+    await fbPut('/' + sessionKey(sessionName) + '/players/' + currentPlayerKey + '/playbook', sessionData.players[currentPlayerKey].playbook);
+    showToast('Images saved!');
+  } catch(e) {
+    showToast('Saved locally');
+  }
+  renderSection(currentSection);
+}
+
+async function removePlaybookImage(idx) {
+  if (!sessionData.players[currentPlayerKey]?.playbook) return;
+  sessionData.players[currentPlayerKey].playbook.splice(idx, 1);
+  try {
+    await fbPut('/' + sessionKey(sessionName) + '/players/' + currentPlayerKey + '/playbook', sessionData.players[currentPlayerKey].playbook);
+  } catch(e) {}
+  renderSection(currentSection);
+  showToast('Image removed');
+}
+
+function openPlaybookImage(idx) {
+  const lb = document.getElementById('playbookLightbox');
+  const img = document.getElementById('playbookLightboxImg');
+  if (!lb || !img) return;
+  const playbook = sessionData.players[currentPlayerKey]?.playbook || [];
+  img.src = playbook[idx] || '';
+  lb.style.display = 'flex';
+}
 function openEditPlayer(pk) {
   const roster = (sessionData.roster && sessionData.roster.length) ? sessionData.roster : DEFAULT_ROSTER;
   const idx = roster.findIndex(p => playerKey(p) === pk);
@@ -854,11 +917,10 @@ function nextSection() {
 
 function isSectionComplete(idx, evalData) {
   const sec = SECTIONS[idx];
-  if (!sec.metrics.length || sec.id === 'gym_testing' || sec.id === 'comm_behaviour' || sec.id === 'rugby_content') return true;
+  if (!sec.metrics.length || sec.id === 'gym_testing' || sec.id === 'comm_behaviour' || sec.id === 'rugby_content' || sec.id === 'coach_playbook') return true;
   const scores = evalData.scores || {};
   return sec.metrics.every(m => scores[sec.id + '_' + m] != null);
 }
-
 // ── RENDER SECTION ────────────────────────────────────
 function renderSection(idx) {
   const sec = SECTIONS[idx];
@@ -945,6 +1007,44 @@ function renderSection(idx) {
     return;
   }
 
+  // ── COACH PLAYBOOK — images only, no scoring ──────────
+  if (sec.id === 'coach_playbook') {
+    const playbook = (sessionData.players[currentPlayerKey] || {}).playbook || [];
+    html += `
+      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;">
+        <div style="background:#0f1723;padding:14px 20px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);">Coach Playbook — Session Plans, Drills & Notes</div>
+        <div style="padding:20px 24px;">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Upload images of session plans, drill diagrams, whiteboard notes, or any coaching resources for this coach.</div>
+          
+          <!-- Upload button -->
+          <label style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#000;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:10px 20px;border-radius:8px;cursor:pointer;margin-bottom:20px;">
+            📎 Add Image
+            <input type="file" accept="image/*" multiple style="display:none;" onchange="addPlaybookImages(this)">
+          </label>
+
+          <!-- Image grid -->
+          <div id="playbookGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;">
+            ${playbook.map((img, i) => `
+              <div style="position:relative;border-radius:10px;overflow:hidden;border:1.5px solid var(--border);aspect-ratio:1;">
+                <img src="${img}" style="width:100%;height:100%;object-fit:contain;background:#0a0a0a;cursor:pointer;" onclick="openPlaybookImage('${i}')">
+                <button onclick="removePlaybookImage(${i})" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);border:none;color:white;border-radius:50%;width:22px;height:22px;font-size:13px;cursor:pointer;line-height:1;">✕</button>
+              </div>`).join('')}
+          </div>
+          ${playbook.length === 0 ? '<div style="color:var(--muted);font-size:13px;font-style:italic;">No images added yet — tap Add Image to upload.</div>' : ''}
+        </div>
+      </div>
+
+      <!-- Lightbox -->
+      <div id="playbookLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:600;align-items:center;justify-content:center;" onclick="this.style.display='none'">
+        <img id="playbookLightboxImg" src="" style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:10px;">
+      </div>
+    `;
+    document.getElementById('sectionContent').innerHTML = html;
+    if (!viewingEval) viewingEval = myEvalName;
+    buildEvalSwitcher();
+    return;
+  }
+
   html += sec.metrics.map(m => {
     const key = sec.id + '_' + m;
     const score = evData.scores ? evData.scores[key] : null;
@@ -978,9 +1078,10 @@ function renderSection(idx) {
         <div class="metric-score-display ${score ? 'score-'+score : ''}" id="disp-${key}">${score || '—'}</div>
       </div>
       <div class="score-buttons">
-        ${[1,2,3,4,5].map(n => `<button class="score-btn ${score==n ? 'selected-'+n : ''}"
-          id="sb-${key}-${n}" ${readonly ? 'disabled style="opacity:0.4;cursor:default;"' : ''}
-          onclick="${readonly ? '' : `setScore('${key}',${n},'${sec.id}')`}">${n}</button>`).join('')}
+        ${[1,2,3,4,5].map(n => '<button class="score-btn ' + (score==n ? 'selected-'+n : '') + '"' +
+          ' id="sb-' + key + '-' + n + '"' +
+          (readonly ? ' disabled style="opacity:0.4;cursor:default;"' : '') +
+          ' onclick="' + (readonly ? '' : "setScore('" + key + "'," + n + ",'" + sec.id + "')") + '">' + n + '</button>').join('')}
       </div>
       <div class="score-label"><span>Needs Work</span><span>Excellent</span></div>
     </div>`;
@@ -1205,6 +1306,36 @@ function generateReport() {
   SECTIONS.forEach(sec => {
     const isFitness = sec.id === 'fitness';
     const isGym = sec.id === 'gym_testing';
+
+    // Skip section if no evaluator has any scores or comments for it
+    const hasAnyScore = sec.metrics.some(m => {
+      const key = sec.id + '_' + m;
+      return evalNames.some(n => (evaluators[n]?.scores||{})[key] != null);
+    });
+    const hasAnyComment = evalNames.some(n => evaluators[n]?.comments?.[sec.id]);
+    const playbook = pData.playbook || [];
+    const isPlaybook = sec.id === 'coach_playbook';
+
+    // Show playbook section only if there are images
+    if (isPlaybook) {
+      if (!playbook.length) return;
+      html += `<div class="report-section">
+        <div class="report-section-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+          <div class="report-section-title">Coach Playbook</div>
+          <div class="report-section-avg" style="color:var(--muted)">📎 ${playbook.length}</div>
+        </div>
+        <div class="report-section-body">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:8px;">
+            ${playbook.map(img => `<div style="border-radius:10px;overflow:hidden;border:1.5px solid var(--border);aspect-ratio:1;background:#0a0a0a;">
+              <img src="${img}" style="width:100%;height:100%;object-fit:contain;">
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+      return;
+    }
+
+    if (!hasAnyScore && !hasAnyComment) return;
     const RPT_GYM_FIELDS = {
       'Body Weight (kg)':[{label:'kg',suffix:'kg'}],'Bench Press (kg)':[{label:'kg',suffix:'kg'},{label:'Reps',suffix:'reps'},{label:'1RM',suffix:'1rm'}],
       'Bench Press Reps':null,'Bench Press 1RM':null,'Pull Up':[{label:'Reps',suffix:'reps'},{label:'1RM',suffix:'1rm'}],
@@ -1249,6 +1380,8 @@ function generateReport() {
             </div>`;
           }
           const avg = crossAvg(evaluators, key);
+          const hasScore = evalNames.some(n => (evaluators[n]?.scores||{})[key] != null);
+          if (!hasScore) return '';
           return `<div class="report-metric-row">
             <div class="report-metric-name">${m}</div>
             <div class="eval-bars">
@@ -1279,15 +1412,39 @@ function generateReport() {
 
   // Overall comment box
   const myOverall = getMyEvalData().overallComment || '';
-  html += `<div style="background:linear-gradient(135deg,#0f172a,#0a2010);border:2px solid var(--green);border-radius:12px;padding:28px;margin-bottom:16px;">
-    <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--white);margin-bottom:16px;">📝 Overall Notes</div>
+  html += `<div style="background:linear-gradient(135deg,#0f172a 0%,#0a2010 100%);border:2px solid var(--green);border-radius:12px;padding:28px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div style="width:36px;height:36px;border-radius:8px;background:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <span style="font-size:18px;">🏉</span>
+      </div>
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--white);">IRANZ Overall Comment</div>
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-top:2px;">Maximise Your Potential</div>
+      </div>
+    </div>
+
+    <div style="background:rgba(34,197,94,0.07);border-left:4px solid var(--green);border-radius:0 8px 8px 0;padding:20px 22px;margin-bottom:20px;position:relative;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:12px;">MD IRANZ</div>
+      <div style="font-size:14px;color:var(--text);line-height:1.8;">
+        <p style="margin:0 0 10px;">Congratulations on completing what has been a demanding and rewarding journey at IRANZ.</p>
+        <p style="margin:0 0 10px;"><strong style="color:var(--white);">This is not the finish line — it's your starting point.</strong></p>
+        <p style="margin:0 0 10px;">From day one, our mission has been to Inspire Growth and prepare you to take ownership of your future. You've been challenged, pushed, and developed — now it's on you to apply it where it matters most.</p>
+        <p style="margin:0 0 10px;">At IRANZ, we live by one standard: <strong style="color:var(--green);">B.E.D — Better Every Day.</strong> That means showing up with intent, improving with purpose, and refusing to stay the same.</p>
+        <p style="margin:0 0 10px;">Your next challenge is simple: Take what you've learned and maximise your potential. Earn your way forward. Prove that you're ready for the next opportunity.</p>
+        <p style="margin:0 0 10px;">Remember — being part of the IRANZ whānau doesn't end here. It means carrying the standards, the mindset, and the work ethic into everything you do.</p>
+        <p style="margin:0 0 14px;">We back you. Now go out and show what you're capable of.</p>
+        <p style="margin:0;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:2px;color:var(--green);">B.E.D — Better. Every. Day.<br><span style="font-size:13px;color:var(--muted);font-weight:600;">Inspiring Growth through Rugby to Maximise Your Potential.</span></p>
+      </div>
+      <div style="position:absolute;top:16px;right:18px;font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);opacity:0.6;">MD IRANZ</div>
+    </div>
+
     ${evalNames.filter(n => n !== myEvalName && evaluators[n]?.overallComment).map((n,i) => `
       <div class="report-comment" style="margin-bottom:10px;">
         <div class="evaluator" style="color:${EVAL_COLORS[i%EVAL_COLORS.length]}">◎ ${n}</div>
         ${evaluators[n].overallComment}
       </div>`).join('')}
-    <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;">Your Notes</div>
-    <textarea class="comment-input" style="min-height:100px;" placeholder="Add your overall coaching notes..."
+    <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;">Additional Coaching Notes</div>
+    <textarea class="comment-input" style="min-height:100px;font-size:15px;line-height:1.7;" placeholder="Add personalised coaching notes for this coach — key strengths, development areas, and next steps..."
       oninput="setOverallComment(this.value)">${myOverall}</textarea>
   </div>`;
 
