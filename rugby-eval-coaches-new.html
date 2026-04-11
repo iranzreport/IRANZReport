@@ -312,7 +312,10 @@
 
   <div style="background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
     <div style="font-size:13px;color:var(--muted);">Evaluating as <strong style="color:var(--white);" id="currentEvalLabel"></strong></div>
-    <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;" onclick="goToScreen(0)">← Change Session</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;" onclick="copyShareLink()">🔗 Copy Share Link</button>
+      <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;" onclick="goToScreen(0)">← Change Session</button>
+    </div>
   </div>
 </div>
 
@@ -1478,6 +1481,15 @@ function goToScreen(n) {
 }
 
 // ── UTILS ─────────────────────────────────────────────
+function copyShareLink() {
+  const base = window.location.href.split('?')[0];
+  const link = base + '?session=' + encodeURIComponent(sessionName);
+  navigator.clipboard.writeText(link).then(() => {
+    showToast('Share link copied!');
+  }).catch(() => {
+    prompt('Copy this link to share:', link);
+  });
+}
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
@@ -1536,6 +1548,15 @@ function loadScript(src) {
 
 // ── INIT ──────────────────────────────────────────────
 renderRecentSessions();
+const _urlParams = new URLSearchParams(window.location.search);
+const _urlSession = _urlParams.get('session');
+if (_urlSession) {
+  document.getElementById('joinSessionName').value = _urlSession;
+  setTimeout(() => {
+    document.getElementById('joinSessionName').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    showToast('Session "' + _urlSession + '" — select your name and tap Join');
+  }, 500);
+}
 document.getElementById('firebaseSetup').style.display = 'none';
 </script>
 </body>
