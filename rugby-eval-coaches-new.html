@@ -602,8 +602,9 @@ function renderPlayerList() {
   container.innerHTML = roster.map(p => {
     const pk = playerKey(p);
     const pData = players[pk] || { evaluators: {} };
-    const evalNames = Object.keys(pData.evaluators || {});
-    const myData = pData.evaluators[myEvalName] || {};
+    if (!pData.evaluators) pData.evaluators = {};
+    const evalNames = Object.keys(pData.evaluators);
+    const myData = (pData.evaluators && pData.evaluators[myEvalName]) ? pData.evaluators[myEvalName] : {};
     const myScores = myData.scores || {};
     const totalMetrics = SECTIONS.filter(s => s.id !== 'fitness' && s.id !== 'gym_testing').reduce((a,s) => a + s.metrics.length, 0);
     const myDone = Object.keys(myScores).length;
