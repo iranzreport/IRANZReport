@@ -605,6 +605,10 @@ function enterSession() {
   document.getElementById('headerEvalBadge').textContent = myEvalName;
   document.getElementById('headerEvalBadge').style.display = 'block';
   document.getElementById('currentEvalLabel').textContent = myEvalName;
+  // Always ensure roster is set so player list shows immediately
+  if (!sessionData.roster || !sessionData.roster.length) {
+    sessionData.roster = DEFAULT_ROSTER;
+  }
   goToScreen(1);
   renderPlayerList();
   startSync();
@@ -618,7 +622,8 @@ function playerKey(p) {
 // ── PLAYER LIST ───────────────────────────────────────
 function renderPlayerList() {
   const container = document.getElementById('playerList');
-  const roster = (sessionData.roster || DEFAULT_ROSTER);
+  // Always use DEFAULT_ROSTER as fallback so list is never empty
+  const roster = (sessionData.roster && sessionData.roster.length) ? sessionData.roster : DEFAULT_ROSTER;
   const players = sessionData.players || {};
 
   container.innerHTML = roster.map(p => {
