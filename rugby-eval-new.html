@@ -441,7 +441,7 @@ function sessionKey(name) {
 // ══════════════════════════════════════════════════════
 
 // ⚙️ CONFIGURE YOUR FIREBASE URL HERE:
-const FIREBASE_URL = localStorage.getItem('iranz_firebase_url') || 'https://advanced-players-course-default-rtdb.firebaseio.com';
+const FIREBASE_URL = 'https://advanced-players-course-default-rtdb.firebaseio.com';
 
 function checkFirebaseConfig() {
   if (!FIREBASE_URL) {
@@ -528,7 +528,7 @@ function quickJoin(name) {
 
 // ── CREATE SESSION ────────────────────────────────────
 async function createSession() {
-  if (!checkFirebaseConfig()) return;
+  
   const name = document.getElementById('newSessionName').value.trim();
   let evalName = document.getElementById('newSessionEval').value;
   if (evalName === '__custom__') evalName = document.getElementById('customEvalName').value.trim();
@@ -567,7 +567,7 @@ async function createSession() {
 
 // ── JOIN SESSION ──────────────────────────────────────
 async function joinSession() {
-  if (!checkFirebaseConfig()) return;
+  
   const name = document.getElementById('joinSessionName').value.trim();
   let evalName = document.getElementById('joinSessionEval').value;
   if (evalName === '__custom__') evalName = document.getElementById('joinCustomEvalName').value.trim();
