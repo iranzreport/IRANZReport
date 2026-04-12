@@ -1320,15 +1320,39 @@ function generateReport() {
 
   // Overall comment box
   const myOverall = getMyEvalData().overallComment || '';
-  html += `<div style="background:linear-gradient(135deg,#0f172a,#0a2010);border:2px solid var(--green);border-radius:12px;padding:28px;margin-bottom:16px;">
-    <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--white);margin-bottom:16px;">📝 Overall Notes</div>
+  html += `<div style="background:linear-gradient(135deg,#0f172a 0%,#0a2010 100%);border:2px solid var(--green);border-radius:12px;padding:28px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div style="width:36px;height:36px;border-radius:8px;background:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <span style="font-size:18px;">🏉</span>
+      </div>
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--white);">IRANZ Overall Comment</div>
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-top:2px;">Maximise Your Potential</div>
+      </div>
+    </div>
+
+    <div style="background:rgba(34,197,94,0.07);border-left:4px solid var(--green);border-radius:0 8px 8px 0;padding:20px 22px;margin-bottom:20px;position:relative;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:12px;">MD IRANZ</div>
+      <div style="font-size:14px;color:var(--text);line-height:1.8;">
+        <p style="margin:0 0 10px;">Congratulations on completing what has been a demanding and rewarding journey at IRANZ.</p>
+        <p style="margin:0 0 10px;"><strong style="color:var(--white);">This is not the finish line — it's your starting point.</strong></p>
+        <p style="margin:0 0 10px;">From day one, our mission has been to Inspire Growth and prepare you to take ownership of your future. You've been challenged, pushed, and developed — now it's on you to apply it where it matters most.</p>
+        <p style="margin:0 0 10px;">At IRANZ, we live by one standard: <strong style="color:var(--green);">B.E.D — Better Every Day.</strong> That means showing up with intent, improving with purpose, and refusing to stay the same.</p>
+        <p style="margin:0 0 10px;">Your next challenge is simple: Take what you've learned and maximise your potential. Earn your way forward. Prove that you're ready for the next opportunity.</p>
+        <p style="margin:0 0 10px;">Remember — being part of the IRANZ whānau doesn't end here. It means carrying the standards, the mindset, and the work ethic into everything you do.</p>
+        <p style="margin:0 0 14px;">We back you. Now go out and show what you're capable of.</p>
+        <p style="margin:0;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:2px;color:var(--green);">B.E.D — Better. Every. Day.<br><span style="font-size:13px;color:var(--muted);font-weight:600;">Inspiring Growth through Rugby to Maximise Your Potential.</span></p>
+      </div>
+      <div style="position:absolute;top:16px;right:18px;font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);opacity:0.6;">MD IRANZ</div>
+    </div>
+
     ${evalNames.filter(n => n !== myEvalName && evaluators[n]?.overallComment).map((n,i) => `
       <div class="report-comment" style="margin-bottom:10px;">
         <div class="evaluator" style="color:${EVAL_COLORS[i%EVAL_COLORS.length]}">◎ ${n}</div>
         ${evaluators[n].overallComment}
       </div>`).join('')}
-    <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;">Your Notes</div>
-    <textarea class="comment-input" style="min-height:100px;" placeholder="Add your overall coaching notes..."
+    <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;">Additional Coaching Notes</div>
+    <textarea class="comment-input" style="min-height:100px;font-size:15px;line-height:1.7;" placeholder="Add personalised coaching notes for this player — key strengths, development areas, and next steps..."
       oninput="setOverallComment(this.value)">${myOverall}</textarea>
   </div>`;
 
