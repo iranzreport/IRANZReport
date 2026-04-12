@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IRANZ Rugby Evaluation</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="IRANZ Eval">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#22c55e">
+<meta name="description" content="IRANZ Rugby Player Evaluation System">
+<link rel="manifest" href="manifest-players.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23111827'/><text y='68' x='50' text-anchor='middle' font-size='55' font-family='Arial Black' font-weight='900' fill='%2322c55e'>IR</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -458,7 +466,8 @@ const SECTIONS = [
   { id:'hc_midfield', name:'Head Coach — Midfield', metrics:['Role Understanding & Ownership (set up & positioning)','Scan & Communication','Running Lines','Handling Skills (catch, pass, offload)','Defence Strategy Understanding','Pre Tackle Alignment','T1 Tackle - tackle','T2 Tackle - 2nd shoulder, jackal, flood','Support Play & Breakdown'] },
   { id:'hc_props', name:'Head Coach — Props', metrics:['Role Understanding & Ownership (set up & positioning)','Running Lines','Handling Skills (catch, pass, offload)','Support Play & Breakdown','Scan & Communication','Pre Tackle Alignment','T1 Tackle - tackle','T2 Tackle - 2nd shoulder, jackal, flood','Support Play & Breakdown'] },
   { id:'fitness', name:'Fitness & Physical', metrics:['Bronco Time','10m Sprint','30m Sprint'] },
-  { id:'gym_testing', name:'Strength & Conditioning', metrics:['Body Weight (kg)','Bench Press (kg)','Bench Press Reps','Bench Press 1RM','Pull Up','Pull Up Reps','Pull Up 1RM','Squat (kg)','Squat Reps','Squat 1RM'] }
+  { id:'gym_testing', name:'Strength & Conditioning', metrics:['Body Weight (kg)','Bench Press (kg)','Bench Press Reps','Bench Press 1RM','Pull Up','Pull Up Reps','Pull Up 1RM','Squat (kg)','Squat Reps','Squat 1RM'] },
+  { id:'player_guide', name:'Player Guide', metrics:[] }
 ];
 
 const EVAL_COLORS = ['#22c55e','#38bdf8','#f59e0b','#a78bfa','#fb923c','#f472b6','#34d399'];
@@ -806,6 +815,49 @@ function compressImage(dataUrl, maxSize, quality) {
   });
 }
 
+// ── PLAYER GUIDE ──────────────────────────────────────
+async function addPlayerGuideImages(input) {
+  if (!input.files || !input.files.length) return;
+  showToast('Uploading images...');
+  ensureMyData();
+  if (!sessionData.players[currentPlayerKey].player_guide) sessionData.players[currentPlayerKey].player_guide = [];
+  for (const file of Array.from(input.files)) {
+    const reader = new FileReader();
+    await new Promise(resolve => {
+      reader.onload = async e => {
+        const compressed = await compressImage(e.target.result, 800, 0.8);
+        sessionData.players[currentPlayerKey].player_guide.push(compressed);
+        resolve();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  try {
+    await fbPut('/' + sessionKey(sessionName) + '/players/' + currentPlayerKey + '/player_guide', sessionData.players[currentPlayerKey].player_guide);
+    showToast('Images saved!');
+  } catch(e) { showToast('Saved locally'); }
+  renderSection(currentSection);
+}
+
+async function removePlayerGuideImage(idx) {
+  if (!sessionData.players[currentPlayerKey]?.player_guide) return;
+  sessionData.players[currentPlayerKey].player_guide.splice(idx, 1);
+  try {
+    await fbPut('/' + sessionKey(sessionName) + '/players/' + currentPlayerKey + '/player_guide', sessionData.players[currentPlayerKey].player_guide);
+  } catch(e) {}
+  renderSection(currentSection);
+  showToast('Image removed');
+}
+
+function openPlayerGuideImage(idx) {
+  const lb = document.getElementById('playerGuideLightbox');
+  const img = document.getElementById('playerGuideLightboxImg');
+  if (!lb || !img) return;
+  const guide = sessionData.players[currentPlayerKey]?.player_guide || [];
+  img.src = guide[idx] || '';
+  lb.style.display = 'flex';
+}
+
 // ── EDIT PLAYER ───────────────────────────────────────
 function openEditPlayer(pk) {
   const roster = (sessionData.roster && sessionData.roster.length) ? sessionData.roster : DEFAULT_ROSTER;
@@ -940,7 +992,7 @@ function nextSection() {
 
 function isSectionComplete(idx, evalData) {
   const sec = SECTIONS[idx];
-  if (!sec.metrics.length || sec.id === 'gym_testing') return true;
+  if (!sec.metrics.length || sec.id === 'gym_testing' || sec.id === 'player_guide') return true;
   const scores = evalData.scores || {};
   return sec.metrics.every(m => scores[sec.id + '_' + m] != null);
 }
@@ -980,6 +1032,38 @@ function renderSection(idx) {
 
   let html = `<div class="section-header"><div class="section-name">${sec.name}</div></div>`;
   if (readonly) html += `<div style="background:#0c4a6e;border:1px solid var(--blue);border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:13px;color:var(--blue);">👁 Viewing ${viewingEval}'s scores — read only</div>`;
+
+  // ── PLAYER GUIDE — images only, no scoring ───────────
+  if (sec.id === 'player_guide') {
+    const guide = (sessionData.players[currentPlayerKey] || {}).player_guide || [];
+    html += `
+      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;">
+        <div style="background:#0f1723;padding:14px 20px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);">Player Guide — Resources, Drills & Development Plans</div>
+        <div style="padding:20px 24px;">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Upload images of player development plans, drill guides, position notes or any resources for this player.</div>
+          <label style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#000;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:10px 20px;border-radius:8px;cursor:pointer;margin-bottom:20px;">
+            📎 Add Image
+            <input type="file" accept="image/*" multiple style="display:none;" onchange="addPlayerGuideImages(this)">
+          </label>
+          <div id="playerGuideGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;">
+            ${guide.map((img, i) => `
+              <div style="position:relative;border-radius:10px;overflow:hidden;border:1.5px solid var(--border);aspect-ratio:1;">
+                <img src="${img}" style="width:100%;height:100%;object-fit:contain;background:#0a0a0a;cursor:pointer;" onclick="openPlayerGuideImage('${i}')">
+                <button onclick="removePlayerGuideImage(${i})" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);border:none;color:white;border-radius:50%;width:22px;height:22px;font-size:13px;cursor:pointer;line-height:1;">✕</button>
+              </div>`).join('')}
+          </div>
+          ${guide.length === 0 ? '<div style="color:var(--muted);font-size:13px;font-style:italic;">No images added yet — tap Add Image to upload.</div>' : ''}
+        </div>
+      </div>
+      <div id="playerGuideLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:600;align-items:center;justify-content:center;" onclick="this.style.display='none'">
+        <img id="playerGuideLightboxImg" src="" style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:10px;">
+      </div>
+    `;
+    document.getElementById('sectionContent').innerHTML = html;
+    if (!viewingEval) viewingEval = myEvalName;
+    buildEvalSwitcher();
+    return;
+  }
 
   html += sec.metrics.map(m => {
     const key = sec.id + '_' + m;
@@ -1241,6 +1325,26 @@ function generateReport() {
   SECTIONS.forEach(sec => {
     const isFitness = sec.id === 'fitness';
     const isGym = sec.id === 'gym_testing';
+
+    // Player Guide — images only section
+    if (sec.id === 'player_guide') {
+      const guide = pData.player_guide || [];
+      if (!guide.length) return;
+      html += `<div class="report-section">
+        <div class="report-section-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+          <div class="report-section-title">Player Guide</div>
+          <div class="report-section-avg" style="color:var(--muted)">📎 ${guide.length}</div>
+        </div>
+        <div class="report-section-body">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:8px;">
+            ${guide.map(img => `<div style="border-radius:10px;overflow:hidden;border:1.5px solid var(--border);aspect-ratio:1;background:#0a0a0a;">
+              <img src="${img}" style="width:100%;height:100%;object-fit:contain;">
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+      return;
+    }
 
     // Skip section if no evaluator has any scores or comments for it
     const hasAnyScore = sec.metrics.some(m => {
