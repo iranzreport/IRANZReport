@@ -1533,22 +1533,30 @@ async function downloadPDF() {
     const pageH = pdf.internal.pageSize.getHeight();
     const imgH = (canvas.height * pageW) / canvas.width;
     let remaining = imgH;
+    let first = true;
     while (remaining > 0) {
       const sliceH = Math.min(remaining, pageH);
       const sy = ((imgH - remaining) / imgH) * canvas.height;
       const sh = (sliceH / imgH) * canvas.height;
       const sc = document.createElement('canvas');
-      sc.width = canvas.width; sc.height = sh;
-      sc.getContext('2d').drawImage(canvas, 0, sy, canvas.width, sh, 0, 0, canvas.width, sh);
-      if (remaining === imgH) pdf.addImage(sc.toDataURL('image/jpeg',0.92), 'JPEG', 0, 0, pageW, sliceH);
-      else { pdf.addPage(); pdf.addImage(sc.toDataURL('image/jpeg',0.92), 'JPEG', 0, 0, pageW, sliceH); }
+      sc.width = canvas.width;
+      sc.height = Math.ceil(sh);
+      const ctx = sc.getContext('2d');
+      ctx.fillStyle = '#0a0a0a';
+      ctx.fillRect(0, 0, sc.width, sc.height);
+      ctx.drawImage(canvas, 0, sy, canvas.width, sh, 0, 0, canvas.width, sh);
+      if (!first) pdf.addPage();
+      pdf.setFillColor(10, 10, 10);
+      pdf.rect(0, 0, pageW, pageH, 'F');
+      pdf.addImage(sc.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, pageW, sliceH);
       remaining -= sliceH;
+      first = false;
     }
     const roster = sessionData.roster || DEFAULT_ROSTER;
     const p = roster.find(pl => playerKey(pl) === currentPlayerKey) || {};
     pdf.save(((p.first||'') + '_' + (p.last||'') + '_report.pdf').replace(/\s+/g,'_'));
     showToast('PDF Downloaded!');
-  } catch(e) { showToast('PDF failed — use Print instead'); }
+  } catch(e) { showToast('PDF failed — use Print instead'); console.error(e); }
   finally { hidden.forEach(el => el.style.visibility = ''); }
 }
 
