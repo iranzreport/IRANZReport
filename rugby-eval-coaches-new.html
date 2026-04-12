@@ -253,6 +253,7 @@
         <option>Harry Godfrey</option>
         <option>Mark Hammett</option>
         <option>Nehe Milner-Skudder</option>
+        <option>Wayne Taylor</option>
         <option value="__custom__">Other (type below)</option>
       </select>
     </div>
@@ -281,6 +282,7 @@
         <option>Harry Godfrey</option>
         <option>Mark Hammett</option>
         <option>Nehe Milner-Skudder</option>
+        <option>Wayne Taylor</option>
         <option value="__custom__">Other (type below)</option>
       </select>
     </div>
@@ -438,6 +440,18 @@ const SECTIONS = [
 ];
 
 const EVAL_COLORS = ['#22c55e','#38bdf8','#f59e0b','#a78bfa','#fb923c','#f472b6','#34d399'];
+const EVAL_NAME_COLORS = {
+  'Colin Cooper': '#22c55e',
+  'Dave Ellis': '#38bdf8',
+  'Dominic Bird': '#f59e0b',
+  'Harry Godfrey': '#a78bfa',
+  'Mark Hammett': '#fb923c',
+  'Nehe Milner-Skudder': '#f472b6',
+  'Wayne Taylor': '#fb923c'
+};
+function getEvalColor(name, idx) {
+  return EVAL_NAME_COLORS[name] || EVAL_COLORS[idx % EVAL_COLORS.length];
+}
 
 const DEFAULT_ROSTER = [
   { first:'Daniel', last:'Tamehana',      dob:'', gender:'', weight:'', height:'', team:'Advanced Coaches' },
@@ -874,7 +888,7 @@ function buildEvalSwitcher() {
 
   sw.innerHTML = evalNames.map((name, i) => {
     const isMe = name === myEvalName;
-    const color = EVAL_COLORS[i % EVAL_COLORS.length];
+    const color = getEvalColor(name, i);
     return `<button class="eval-tab ${isMe ? 'active' : ''}"
       style="${isMe ? 'background:'+color+';border-color:'+color+';color:#000;' : 'border-color:'+color+';color:'+color+';'}"
       onclick="switchEvalView('${name}')">${name}${isMe ? ' (you)' : ''}</button>`;
@@ -1284,7 +1298,7 @@ function generateReport() {
   // Evaluator pills
   if (evalNames.length) {
     html += `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
-      ${evalNames.map((n,i) => `<span style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 14px;border-radius:20px;border:1.5px solid ${EVAL_COLORS[i%EVAL_COLORS.length]};color:${EVAL_COLORS[i%EVAL_COLORS.length]};background:${EVAL_COLORS[i%EVAL_COLORS.length]}11;">◎ ${n}</span>`).join('')}
+      ${evalNames.map((n,i) => `<span style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 14px;border-radius:20px;border:1.5px solid ${getEvalColor(n,i)};color:${getEvalColor(n,i)};background:${getEvalColor(n,i)}11;">◎ ${n}</span>`).join('')}
     </div>`;
   }
 
@@ -1365,7 +1379,7 @@ function generateReport() {
             const fields = RPT_GYM_FIELDS[m];
             if (fields === null) return '';
             const evalRows = evalNames.map((n,i) => {
-              const color = EVAL_COLORS[i%EVAL_COLORS.length];
+              const color = getEvalColor(n, i);
               const cells = fields.map(f => {
                 const fkey = key+'_'+f.suffix;
                 const val = (evaluators[n]?.scores||{})[fkey];
