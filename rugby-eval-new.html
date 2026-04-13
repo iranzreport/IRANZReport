@@ -1116,9 +1116,12 @@ function renderSection(idx) {
         <div class="metric-score-display ${score ? 'score-'+score : ''}" id="disp-${key}">${score || '—'}</div>
       </div>
       <div class="score-buttons">
-        ${[1,2,3,4,5].map(n => `<button class="score-btn ${score==n ? 'selected-'+n : ''}"
-          id="sb-${key}-${n}" ${readonly ? 'disabled style="opacity:0.4;cursor:default;"' : ''}
-          onclick="${readonly ? '' : `setScore('${key}',${n},'${sec.id}')`}">${n}</button>`).join('')}
+        ${[1,2,3,4,5].map(n => {
+          const sel = String(score) === String(n);
+          const scoreStyles = {1:'background:#7f1d1d;border-color:#ef4444;color:#ef4444;',2:'background:#78350f;border-color:#f59e0b;color:#f59e0b;',3:'background:#713f12;border-color:#facc15;color:#facc15;',4:'background:#0c4a6e;border-color:#38bdf8;color:#38bdf8;',5:'background:#14532d;border-color:#22c55e;color:#22c55e;'};
+          const style = sel ? scoreStyles[n] : (readonly ? 'opacity:0.4;cursor:default;' : '');
+          return '<button class="score-btn" id="sb-'+key+'-'+n+'" style="'+style+'"' + (readonly ? ' disabled' : '') + ' onclick="'+(readonly ? '' : "setScore('"+key+"',"+n+",'"+sec.id+"')")+'">'+n+'</button>';
+        }).join('')}
       </div>
       <div class="score-label"><span>Needs Work</span><span>Excellent</span></div>
     </div>`;
@@ -1139,19 +1142,18 @@ function renderSection(idx) {
 
 // ── SET SCORES ────────────────────────────────────────
 function setScore(key, score, secId) {
-  // If tapping the already-selected score, deselect it
   const myData = getMyEvalData();
   const currentScore = (myData.scores || {})[key];
   const newScore = currentScore == score ? null : score;
+  const scoreStyles = {1:'background:#7f1d1d;border-color:#ef4444;color:#ef4444;',2:'background:#78350f;border-color:#f59e0b;color:#f59e0b;',3:'background:#713f12;border-color:#facc15;color:#facc15;',4:'background:#0c4a6e;border-color:#38bdf8;color:#38bdf8;',5:'background:#14532d;border-color:#22c55e;color:#22c55e;'};
 
   if (newScore === null) {
-    // Clear the score
     delete sessionData.players[currentPlayerKey].evaluators[myEvalName].scores[key];
     const disp = document.getElementById('disp-'+key);
     if (disp) { disp.textContent = '—'; disp.className = 'metric-score-display'; }
     for (let n=1; n<=5; n++) {
       const btn = document.getElementById('sb-'+key+'-'+n);
-      if (btn) btn.className = 'score-btn';
+      if (btn) btn.style.cssText = '';
     }
   } else {
     setMyScore(key, newScore);
@@ -1159,7 +1161,7 @@ function setScore(key, score, secId) {
     if (disp) { disp.textContent = newScore; disp.className = 'metric-score-display score-'+newScore; }
     for (let n=1; n<=5; n++) {
       const btn = document.getElementById('sb-'+key+'-'+n);
-      if (btn) btn.className = 'score-btn' + (n==newScore ? ' selected-'+n : '');
+      if (btn) btn.style.cssText = (n==newScore ? scoreStyles[n] : '');
     }
   }
   const sec = SECTIONS.find(s => s.id === secId);
