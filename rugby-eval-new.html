@@ -1119,8 +1119,10 @@ function renderSection(idx) {
         ${[1,2,3,4,5].map(n => {
           const sel = String(score) === String(n);
           const scoreStyles = {1:'background:#7f1d1d;border-color:#ef4444;color:#ef4444;',2:'background:#78350f;border-color:#f59e0b;color:#f59e0b;',3:'background:#713f12;border-color:#facc15;color:#facc15;',4:'background:#0c4a6e;border-color:#38bdf8;color:#38bdf8;',5:'background:#14532d;border-color:#22c55e;color:#22c55e;'};
-          const style = sel ? scoreStyles[n] : (readonly ? 'opacity:0.4;cursor:default;' : '');
-          return '<button class="score-btn" id="sb-'+key+'-'+n+'" style="'+style+'"' + (readonly ? ' disabled' : '') + ' onclick="'+(readonly ? '' : "setScore('"+key+"',"+n+",'"+sec.id+"')")+'">'+n+'</button>';
+          const styleStr = sel ? scoreStyles[n] : '';
+          const disabledStr = readonly ? 'disabled style="opacity:0.4;cursor:default;"' : '';
+          const onclickStr = readonly ? '' : `onclick="setScore(this.dataset.key,this.dataset.n,this.dataset.sec)"`;
+          return `<button class="score-btn" id="sb-${key}-${n}" ${disabledStr} ${onclickStr} data-key="${key}" data-n="${n}" data-sec="${sec.id}" style="${styleStr}">${n}</button>`;
         }).join('')}
       </div>
       <div class="score-label"><span>Needs Work</span><span>Excellent</span></div>
@@ -1142,6 +1144,7 @@ function renderSection(idx) {
 
 // ── SET SCORES ────────────────────────────────────────
 function setScore(key, score, secId) {
+  score = parseInt(score);
   const myData = getMyEvalData();
   const currentScore = (myData.scores || {})[key];
   const newScore = currentScore == score ? null : score;
