@@ -757,6 +757,7 @@ function renderPlayerList() {
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
         <button onclick="event.stopPropagation();openEditPlayer('${pk}')" style="background:none;border:1.5px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-size:12px;padding:4px 10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">✏️ Edit</button>
+        <button onclick="event.stopPropagation();viewReport('${pk}')" style="background:none;border:1.5px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-size:12px;padding:4px 10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">📊 Report</button>
         <div class="player-card-progress" style="align-items:flex-end;">
           ${avg ? `<div class="progress-ring" style="color:${getScoreColor(avg)}">${avg}</div>` : '<div class="progress-ring" style="color:var(--border)">—</div>'}
           <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
@@ -856,6 +857,20 @@ function openPlayerGuideImage(idx) {
   const guide = sessionData.players[currentPlayerKey]?.player_guide || [];
   img.src = guide[idx] || '';
   lb.style.display = 'flex';
+}
+
+function viewReport(pk) {
+  currentPlayerKey = pk;
+  viewingEval = myEvalName;
+  // Ensure player exists in sessionData
+  if (!sessionData.players) sessionData.players = {};
+  if (!sessionData.players[pk]) {
+    const roster = sessionData.roster || DEFAULT_ROSTER;
+    const p = roster.find(pl => playerKey(pl) === pk);
+    sessionData.players[pk] = { info: p || {}, evaluators: {} };
+  }
+  generateReport();
+  goToScreen(3);
 }
 
 // ── EDIT PLAYER ───────────────────────────────────────
