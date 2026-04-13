@@ -99,11 +99,7 @@
   .score-buttons { display:flex; gap:8px; }
   .score-btn { flex:1; padding:10px 0; border-radius:6px; border:1.5px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:700; transition:all 0.15s; }
   .score-btn:hover { border-color:var(--muted); color:var(--white); background:#243047; }
-  .score-btn.selected-1 { background:#7f1d1d; border-color:var(--red); color:var(--red); }
-  .score-btn.selected-2 { background:#78350f; border-color:var(--amber); color:var(--amber); }
-  .score-btn.selected-3 { background:#713f12; border-color:#facc15; color:#facc15; }
-  .score-btn.selected-4 { background:#0c4a6e; border-color:var(--blue); color:var(--blue); }
-  .score-btn.selected-5 { background:#14532d; border-color:var(--green); color:var(--green); }
+  /* Score button selected states handled via inline styles */
   .score-label { display:flex; justify-content:space-between; margin-top:6px; font-size:10px; color:var(--muted); letter-spacing:1px; }
   .comment-area { background:var(--card); border:1.5px solid var(--border); border-radius:10px; padding:20px 24px; margin-top:24px; }
   .comment-label { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:10px; font-weight:600; }
@@ -218,7 +214,7 @@
      SCREEN 0: JOIN / CREATE SESSION
 ════════════════════════════════════════════════════ -->
 <!-- Firebase Setup Banner -->
-<div id="firebaseSetup" style="display:none;background:linear-gradient(135deg,#1a1a0a,#2d2000);border:2px solid var(--amber);border-radius:12px;padding:24px;margin-bottom:24px;">
+<div id="firebaseSetup" style="display:none!important;" style="display:none;background:linear-gradient(135deg,#1a1a0a,#2d2000);border:2px solid var(--amber);border-radius:12px;padding:24px;margin-bottom:24px;">
   <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--amber);margin-bottom:6px;">⚙️ One-Time Setup Required</div>
   <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6;">
     To enable live sync across devices, paste your Firebase Realtime Database URL below.<br>
@@ -1125,7 +1121,7 @@ function renderSection(idx) {
       <div class="score-buttons">
         ${[1,2,3,4,5].map(n => {
           const sel = String(score) === String(n);
-          const scoreStyles = {1:'background:#7f1d1d;border-color:#ef4444;color:#ef4444;',2:'background:#78350f;border-color:#f59e0b;color:#f59e0b;',3:'background:#713f12;border-color:#facc15;color:#facc15;',4:'background:#0c4a6e;border-color:#38bdf8;color:#38bdf8;',5:'background:#14532d;border-color:#22c55e;color:#22c55e;'};
+          const scoreStyles = {1:'background:#7f1d1d!important;border-color:#ef4444!important;color:#ef4444!important;',2:'background:#78350f!important;border-color:#f59e0b!important;color:#f59e0b!important;',3:'background:#713f12!important;border-color:#facc15!important;color:#facc15!important;',4:'background:#0c4a6e!important;border-color:#38bdf8!important;color:#38bdf8!important;',5:'background:#14532d!important;border-color:#22c55e!important;color:#22c55e!important;'};
           const styleStr = sel ? scoreStyles[n] : '';
           if (readonly) return `<button class="score-btn" style="opacity:0.4;cursor:default;" disabled>${n}</button>`;
           return `<button class="score-btn" id="sb-${key}-${n}" style="${styleStr}" onclick="handleScoreBtn(this,'${key}',${n})">${n}</button>`;
@@ -1161,7 +1157,7 @@ function setScore(key, score, secId) {
   const myData = getMyEvalData();
   const currentScore = parseInt((myData.scores || {})[key]) || 0;
   const newScore = currentScore === score ? 0 : score;
-  const scoreStyles = {1:'background:#7f1d1d;border-color:#ef4444;color:#ef4444;',2:'background:#78350f;border-color:#f59e0b;color:#f59e0b;',3:'background:#713f12;border-color:#facc15;color:#facc15;',4:'background:#0c4a6e;border-color:#38bdf8;color:#38bdf8;',5:'background:#14532d;border-color:#22c55e;color:#22c55e;'};
+  const scoreStyles = {1:'background:#7f1d1d!important;border-color:#ef4444!important;color:#ef4444!important;',2:'background:#78350f!important;border-color:#f59e0b!important;color:#f59e0b!important;',3:'background:#713f12!important;border-color:#facc15!important;color:#facc15!important;',4:'background:#0c4a6e!important;border-color:#38bdf8!important;color:#38bdf8!important;',5:'background:#14532d!important;border-color:#22c55e!important;color:#22c55e!important;'};
 
   setMyScore(key, newScore);
   const disp = document.getElementById('disp-'+key);
