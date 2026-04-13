@@ -256,7 +256,8 @@
       <select class="form-select" id="newSessionEval">
         <option value="">— Select your name —</option>
         <option>Colin Cooper</option>
-                <option>Dominic Bird</option>
+        <option>Dave Ellis</option>
+        <option>Dominic Bird</option>
         <option>Harry Godfrey</option>
         <option>Mark Hammett</option>
         <option>Nehe Milner-Skudder</option>
@@ -284,7 +285,8 @@
       <select class="form-select" id="joinSessionEval">
         <option value="">— Select your name —</option>
         <option>Colin Cooper</option>
-                <option>Dominic Bird</option>
+        <option>Dave Ellis</option>
+        <option>Dominic Bird</option>
         <option>Harry Godfrey</option>
         <option>Mark Hammett</option>
         <option>Nehe Milner-Skudder</option>
@@ -966,9 +968,9 @@ function buildEvalSwitcher() {
   }).join('');
 }
 
-let viewingEval = ''; // which evaluator's scores are being viewed
+let viewingEval = ''; // which evaluator's scores are being viewed - set to myEvalName on session enter
 function switchEvalView(name) {
-  viewingEval = (name === myEvalName) ? myEvalName : name;
+  viewingEval = name || myEvalName;
   buildEvalSwitcher();
   renderSection(currentSection);
 }
@@ -1015,12 +1017,14 @@ function isSectionComplete(idx, evalData) {
 function renderSection(idx) {
   const sec = SECTIONS[idx];
   currentSection = idx;
+  // If viewingEval somehow got set to empty string or undefined, reset to myEvalName
+  if (!viewingEval) viewingEval = myEvalName;
   // Always allow editing own scores - readonly only when explicitly viewing someone else
-  const isViewingMe = !viewingEval || viewingEval === myEvalName;
+  const isViewingMe = viewingEval === myEvalName;
   // Show my own scores when viewing myself, otherwise show the other evaluator's scores
   const evData = isViewingMe ? getMyEvalData() : getViewingEvalData();
   const myData = getMyEvalData();
-  const readonly = isViewingMe ? false : true; // Never readonly when viewing own scores
+  const readonly = !isViewingMe; // Never readonly when viewing own scores
 
   document.querySelectorAll('.section-tab').forEach((t, i) => {
     t.classList.remove('active', 'completed');
@@ -1084,7 +1088,7 @@ function renderSection(idx) {
   html += sec.metrics.map(m => {
     const key = sec.id + '_' + m;
     const rawScore = evData.scores ? evData.scores[key] : null;
-    const score = rawScore != null ? parseInt(rawScore) : null;
+    const score = (rawScore != null && parseInt(rawScore) > 0) ? parseInt(rawScore) : null;
 
     if (isGym) {
       const fields = GYM_FIELDS[m];
@@ -1109,6 +1113,8 @@ function renderSection(idx) {
       </div>`;
     }
 
+    // Register key/secId in global map for onclick
+    _scoreKeyMap[key] = sec.id;
     return `<div class="metric-card" id="mc-${key}">
       <div class="metric-top">
         <div class="metric-name">${m}</div>
@@ -1119,9 +1125,8 @@ function renderSection(idx) {
           const sel = String(score) === String(n);
           const scoreStyles = {1:'background:#7f1d1d;border-color:#ef4444;color:#ef4444;',2:'background:#78350f;border-color:#f59e0b;color:#f59e0b;',3:'background:#713f12;border-color:#facc15;color:#facc15;',4:'background:#0c4a6e;border-color:#38bdf8;color:#38bdf8;',5:'background:#14532d;border-color:#22c55e;color:#22c55e;'};
           const styleStr = sel ? scoreStyles[n] : '';
-          const disabledStr = readonly ? 'disabled style="opacity:0.4;cursor:default;"' : '';
-          const onclickStr = readonly ? '' : `onclick="setScore(this.dataset.key,this.dataset.n,this.dataset.sec)"`;
-          return `<button class="score-btn" id="sb-${key}-${n}" ${disabledStr} ${onclickStr} data-key="${key}" data-n="${n}" data-sec="${sec.id}" style="${styleStr}">${n}</button>`;
+          if (readonly) return `<button class="score-btn" style="opacity:0.4;cursor:default;" disabled>${n}</button>`;
+          return `<button class="score-btn" id="sb-${key}-${n}" style="${styleStr}" onclick="handleScoreBtn(this,'${key}',${n})">${n}</button>`;
         }).join('')}
       </div>
       <div class="score-label"><span>Needs Work</span><span>Excellent</span></div>
@@ -1142,24 +1147,29 @@ function renderSection(idx) {
 }
 
 // ── SET SCORES ────────────────────────────────────────
+const _scoreKeyMap = {}; // maps key -> secId for onclick
+
+function handleScoreBtn(btn, key, n) {
+  const secId = _scoreKeyMap[key] || '';
+  setScore(key, n, secId);
+}
+
 function setScore(key, score, secId) {
   score = parseInt(score);
   const myData = getMyEvalData();
-  const currentScore = (myData.scores || {})[key];
-  const newScore = currentScore == score ? null : score;
+  const currentScore = parseInt((myData.scores || {})[key]) || 0;
+  const newScore = currentScore === score ? 0 : score; // 0 means cleared
   const scoreStyles = {1:'background:#7f1d1d;border-color:#ef4444;color:#ef4444;',2:'background:#78350f;border-color:#f59e0b;color:#f59e0b;',3:'background:#713f12;border-color:#facc15;color:#facc15;',4:'background:#0c4a6e;border-color:#38bdf8;color:#38bdf8;',5:'background:#14532d;border-color:#22c55e;color:#22c55e;'};
 
-  if (newScore === null) {
-    delete sessionData.players[currentPlayerKey].evaluators[myEvalName].scores[key];
-    const disp = document.getElementById('disp-'+key);
+  setMyScore(key, newScore);
+  const disp = document.getElementById('disp-'+key);
+  if (newScore === 0) {
     if (disp) { disp.textContent = '—'; disp.className = 'metric-score-display'; }
     for (let n=1; n<=5; n++) {
       const btn = document.getElementById('sb-'+key+'-'+n);
       if (btn) btn.style.cssText = '';
     }
   } else {
-    setMyScore(key, newScore);
-    const disp = document.getElementById('disp-'+key);
     if (disp) { disp.textContent = newScore; disp.className = 'metric-score-display score-'+newScore; }
     for (let n=1; n<=5; n++) {
       const btn = document.getElementById('sb-'+key+'-'+n);
@@ -1169,7 +1179,10 @@ function setScore(key, score, secId) {
   const sec = SECTIONS.find(s => s.id === secId);
   if (sec) {
     const myData2 = getMyEvalData();
-    const filled = sec.metrics.filter(m => myData2.scores && myData2.scores[sec.id+'_'+m] != null).length;
+    const filled = sec.metrics.filter(m => {
+      const v = myData2.scores && myData2.scores[sec.id+'_'+m];
+      return v != null && parseInt(v) > 0;
+    }).length;
     document.getElementById('progressFill').style.width = (filled/sec.metrics.length*100)+'%';
   }
   schedulePush();
