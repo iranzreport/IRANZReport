@@ -1121,18 +1121,33 @@ function renderSection(idx) {
 
 // ── SET SCORES ────────────────────────────────────────
 function setScore(key, score, secId) {
-  setMyScore(key, score);
-  // Update UI
-  const disp = document.getElementById('disp-'+key);
-  if (disp) { disp.textContent = score; disp.className = 'metric-score-display score-'+score; }
-  for (let n=1; n<=5; n++) {
-    const btn = document.getElementById('sb-'+key+'-'+n);
-    if (btn) btn.className = 'score-btn' + (n==score ? ' selected-'+n : '');
+  // If tapping the already-selected score, deselect it
+  const myData = getMyEvalData();
+  const currentScore = (myData.scores || {})[key];
+  const newScore = currentScore == score ? null : score;
+
+  if (newScore === null) {
+    // Clear the score
+    delete sessionData.players[currentPlayerKey].evaluators[myEvalName].scores[key];
+    const disp = document.getElementById('disp-'+key);
+    if (disp) { disp.textContent = '—'; disp.className = 'metric-score-display'; }
+    for (let n=1; n<=5; n++) {
+      const btn = document.getElementById('sb-'+key+'-'+n);
+      if (btn) btn.className = 'score-btn';
+    }
+  } else {
+    setMyScore(key, newScore);
+    const disp = document.getElementById('disp-'+key);
+    if (disp) { disp.textContent = newScore; disp.className = 'metric-score-display score-'+newScore; }
+    for (let n=1; n<=5; n++) {
+      const btn = document.getElementById('sb-'+key+'-'+n);
+      if (btn) btn.className = 'score-btn' + (n==newScore ? ' selected-'+n : '');
+    }
   }
   const sec = SECTIONS.find(s => s.id === secId);
   if (sec) {
-    const myData = getMyEvalData();
-    const filled = sec.metrics.filter(m => myData.scores && myData.scores[sec.id+'_'+m] != null).length;
+    const myData2 = getMyEvalData();
+    const filled = sec.metrics.filter(m => myData2.scores && myData2.scores[sec.id+'_'+m] != null).length;
     document.getElementById('progressFill').style.width = (filled/sec.metrics.length*100)+'%';
   }
   schedulePush();
