@@ -371,7 +371,7 @@
 </div><!-- /main -->
 
 <div class="toast" id="toast"></div>
-<div class="autosave-bar" id="autosaveBar"><div class="autosave-dot"></div> Saved</div>
+<div class="autosave-bar" id="autosaveBar"><div class="autosave-dot"></div> ✓ Scores Saved to Firebase</div>
 
 <!-- Edit Player Modal -->
 <div id="editPlayerModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:500;overflow-y:auto;">
@@ -1593,6 +1593,8 @@ function setOverallComment(val) {
 
 // ── NAVIGATION ────────────────────────────────────────
 function goToScreen(n) {
+  // Save any pending scores before navigating away
+  if (currentPlayerKey && myEvalName && sessionName) pushMyScores();
   document.querySelectorAll('.screen').forEach((s,i) => s.classList.toggle('active', i===n));
   window.scrollTo(0,0);
   if (n === 0) { renderRecentSessions(); if (syncInterval) { clearInterval(syncInterval); syncInterval = null; } }
@@ -1618,7 +1620,7 @@ function showToast(msg) {
 function showAutosave() {
   const bar = document.getElementById('autosaveBar');
   bar.classList.add('show');
-  setTimeout(() => bar.classList.remove('show'), 1500);
+  setTimeout(() => bar.classList.remove('show'), 3000);
 }
 
 // ── PDF DOWNLOAD ──────────────────────────────────────
