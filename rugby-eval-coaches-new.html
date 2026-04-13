@@ -256,8 +256,7 @@
       <select class="form-select" id="newSessionEval">
         <option value="">— Select your name —</option>
         <option>Colin Cooper</option>
-        <option>Dave Ellis</option>
-        <option>Dominic Bird</option>
+                <option>Dominic Bird</option>
         <option>Harry Godfrey</option>
         <option>Mark Hammett</option>
         <option>Nehe Milner-Skudder</option>
@@ -285,8 +284,7 @@
       <select class="form-select" id="joinSessionEval">
         <option value="">— Select your name —</option>
         <option>Colin Cooper</option>
-        <option>Dave Ellis</option>
-        <option>Dominic Bird</option>
+                <option>Dominic Bird</option>
         <option>Harry Godfrey</option>
         <option>Mark Hammett</option>
         <option>Nehe Milner-Skudder</option>
@@ -969,7 +967,7 @@ function renderSection(idx) {
   const isViewingMe = !viewingEval || viewingEval === myEvalName;
   const evData = isViewingMe ? getMyEvalData() : getViewingEvalData();
   const myData = getMyEvalData();
-  const readonly = !isViewingMe;
+  const readonly = isViewingMe ? false : true;
 
   document.querySelectorAll('.section-tab').forEach((t, i) => {
     t.classList.remove('active', 'completed');
@@ -1088,7 +1086,8 @@ function renderSection(idx) {
 
   html += sec.metrics.map(m => {
     const key = sec.id + '_' + m;
-    const score = evData.scores ? evData.scores[key] : null;
+    const rawScore = evData.scores ? evData.scores[key] : null;
+    const score = rawScore != null ? parseInt(rawScore) : null;
 
     if (isGym) {
       const fields = GYM_FIELDS[m];
