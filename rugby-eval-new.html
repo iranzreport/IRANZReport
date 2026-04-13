@@ -1123,7 +1123,8 @@ function renderSection(idx) {
           const scoreStyles = {1:'background:#7f1d1d!important;border-color:#ef4444!important;color:#ef4444!important;',2:'background:#78350f!important;border-color:#f59e0b!important;color:#f59e0b!important;',3:'background:#713f12!important;border-color:#facc15!important;color:#facc15!important;',4:'background:#0c4a6e!important;border-color:#38bdf8!important;color:#38bdf8!important;',5:'background:#14532d!important;border-color:#22c55e!important;color:#22c55e!important;'};
           const styleStr = sel ? scoreStyles[n] : '';
           if (readonly) return `<button class="score-btn" style="opacity:0.4;cursor:default;" disabled>${n}</button>`;
-          return `<button class="score-btn" id="sb-${key}-${n}" style="${styleStr}" onclick="handleScoreBtn(this,'${key}',${n})">${n}</button>`;
+          const btnId = 'sb-'+key+'-'+n;
+          return `<button class="score-btn" id="${btnId}" style="${styleStr}" onclick="handleScoreBtnById('${btnId}')">${n}</button>`;
         }).join('')}
       </div>
       <div class="score-label"><span>Needs Work</span><span>Excellent</span></div>
@@ -1147,6 +1148,17 @@ function renderSection(idx) {
 const _scoreKeyMap = {}; // maps key -> secId for onclick
 
 function handleScoreBtn(btn, key, n) {
+  const secId = _scoreKeyMap[key] || '';
+  setScore(key, n, secId);
+}
+
+function handleScoreBtnById(btnId) {
+  // Extract key and n from button ID: format is "sb-{key}-{n}"
+  // n is always the last character before end
+  const lastDash = btnId.lastIndexOf('-');
+  const n = parseInt(btnId.substring(lastDash + 1));
+  // key is everything between "sb-" and the last "-{n}"
+  const key = btnId.substring(3, lastDash);
   const secId = _scoreKeyMap[key] || '';
   setScore(key, n, secId);
 }
