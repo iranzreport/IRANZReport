@@ -865,6 +865,7 @@ async function saveEditPlayer() {
 function openPlayer(pk) {
   currentPlayerKey = pk;
   currentSection = 0;
+  viewingEval = myEvalName; // Always reset to own scores when opening a player
 
   const roster = sessionData.roster || DEFAULT_ROSTER;
   const p = roster.find(pl => playerKey(pl) === pk);
