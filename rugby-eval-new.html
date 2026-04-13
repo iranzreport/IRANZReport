@@ -970,7 +970,7 @@ function buildEvalSwitcher() {
 
 let viewingEval = ''; // which evaluator's scores are being viewed
 function switchEvalView(name) {
-  viewingEval = name;
+  viewingEval = (name === myEvalName) ? myEvalName : name;
   buildEvalSwitcher();
   renderSection(currentSection);
 }
@@ -1017,8 +1017,10 @@ function isSectionComplete(idx, evalData) {
 function renderSection(idx) {
   const sec = SECTIONS[idx];
   currentSection = idx;
+  // Always allow editing own scores - readonly only when explicitly viewing someone else
   const isViewingMe = !viewingEval || viewingEval === myEvalName;
-  const evData = getViewingEvalData();
+  // Show my own scores when viewing myself, otherwise show the other evaluator's scores
+  const evData = isViewingMe ? getMyEvalData() : getViewingEvalData();
   const myData = getMyEvalData();
   const readonly = !isViewingMe;
 

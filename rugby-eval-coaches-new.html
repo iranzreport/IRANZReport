@@ -920,7 +920,7 @@ function buildEvalSwitcher() {
 
 let viewingEval = ''; // which evaluator's scores are being viewed
 function switchEvalView(name) {
-  viewingEval = name;
+  viewingEval = (name === myEvalName) ? myEvalName : name;
   buildEvalSwitcher();
   renderSection(currentSection);
 }
@@ -967,7 +967,7 @@ function renderSection(idx) {
   const sec = SECTIONS[idx];
   currentSection = idx;
   const isViewingMe = !viewingEval || viewingEval === myEvalName;
-  const evData = getViewingEvalData();
+  const evData = isViewingMe ? getMyEvalData() : getViewingEvalData();
   const myData = getMyEvalData();
   const readonly = !isViewingMe;
 
