@@ -1233,14 +1233,22 @@ async function pushMyScores() {
 }
 
 function encodeEvalName(name) {
-  return name.replace(/[.#$/[\]]/g, '_');
+  return name.replace(/[.#$/[\]\s]/g, '_');
+}
+
+function decodeEvalName(encoded) {
+  const known = ['Colin Cooper','Dave Ellis','Dominic Bird','Harry Godfrey','Mark Hammett','Nehe Milner-Skudder','Wayne Taylor'];
+  for (const n of known) {
+    if (encodeEvalName(n) === encoded) return n;
+  }
+  return encoded.replace(/_/g, ' ');
 }
 
 // ── SYNC FROM FIREBASE ────────────────────────────────
 function startSync() {
   if (syncInterval) clearInterval(syncInterval);
   syncInterval = setInterval(syncSession, 8000);
-  syncSession(); // immediate
+  syncSession();
 }
 
 async function syncSession() {
@@ -1248,21 +1256,32 @@ async function syncSession() {
   try {
     const data = await fbGet('/' + sessionKey(sessionName));
     if (!data) return;
-    // Merge: preserve our own data, take remote data for others
     if (data.players) {
       Object.keys(data.players).forEach(pk => {
         if (!sessionData.players) sessionData.players = {};
         if (!sessionData.players[pk]) sessionData.players[pk] = { info: {}, evaluators: {} };
         const remoteEvals = data.players[pk].evaluators || {};
         Object.keys(remoteEvals).forEach(en => {
-          const decoded = en.replace(/_/g, ' '); // rough decode
-          // Don't overwrite our own data with stale remote
-          if (decoded !== myEvalName && en !== encodeEvalName(myEvalName)) {
-            if (!sessionData.players[pk].evaluators) sessionData.players[pk].evaluators = {};
-            sessionData.players[pk].evaluators[decoded] = remoteEvals[en];
+          const realName = decodeEvalName(en);
+          if (!sessionData.players[pk].evaluators) sessionData.players[pk].evaluators = {};
+
+          if (realName === myEvalName || en === encodeEvalName(myEvalName)) {
+            const localData = sessionData.players[pk].evaluators[myEvalName] || {};
+            const remoteData = remoteEvals[en] || {};
+            const mergedScores = Object.assign({}, remoteData.scores || {}, localData.scores || {});
+            const mergedComments = Object.assign({}, remoteData.comments || {}, localData.comments || {});
+            sessionData.players[pk].evaluators[myEvalName] = {
+              scores: mergedScores,
+              comments: mergedComments,
+              overallComment: localData.overallComment || remoteData.overallComment || ''
+            };
+          } else {
+            sessionData.players[pk].evaluators[realName] = remoteEvals[en];
           }
         });
         if (data.players[pk].info) sessionData.players[pk].info = data.players[pk].info;
+        if (data.players[pk].photo) sessionData.players[pk].photo = data.players[pk].photo;
+        if (data.players[pk].playbook) sessionData.players[pk].playbook = data.players[pk].playbook;
       });
     }
     if (data.roster) sessionData.roster = data.roster;
@@ -1271,9 +1290,7 @@ async function syncSession() {
     document.getElementById('syncStatus').textContent = 'Synced ' + t;
     document.getElementById('syncDot').className = 'sync-dot live';
 
-    // Refresh player list if on that screen
     if (document.getElementById('screen-1').classList.contains('active')) renderPlayerList();
-    // Refresh eval switcher if scoring
     if (document.getElementById('screen-2').classList.contains('active')) buildEvalSwitcher();
 
   } catch(e) {
