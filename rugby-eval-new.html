@@ -311,6 +311,7 @@
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
       <div class="sync-bar"><div class="sync-dot live" id="syncDot"></div><span id="syncStatus">Syncing...</span></div>
       <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;" onclick="copyShareLink()">🔗 Copy Join Link</button>
+      <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;" onclick="reloadMyData()">↻ Reload My Data</button>
       <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;" onclick="refreshPlayerList()">↻ Refresh</button>
     </div>
   </div>
@@ -1296,6 +1297,33 @@ async function syncSession() {
     document.getElementById('syncDot').className = 'sync-dot';
     document.getElementById('syncStatus').textContent = 'Offline';
     console.error('sync failed', e);
+  }
+}
+
+async function reloadMyData() {
+  showToast('Reloading your data from Firebase...');
+  try {
+    const data = await fbGet('/' + sessionKey(sessionName));
+    if (!data || !data.players) { showToast('No data found'); return; }
+    // Load MY data from Firebase for ALL players
+    Object.keys(data.players).forEach(pk => {
+      const remoteEvals = data.players[pk].evaluators || {};
+      Object.keys(remoteEvals).forEach(en => {
+        const realName = decodeEvalName(en);
+        if (realName === myEvalName || en === encodeEvalName(myEvalName)) {
+          if (!sessionData.players) sessionData.players = {};
+          if (!sessionData.players[pk]) sessionData.players[pk] = { info: {}, evaluators: {} };
+          if (!sessionData.players[pk].evaluators) sessionData.players[pk].evaluators = {};
+          // Force overwrite with Firebase data
+          sessionData.players[pk].evaluators[myEvalName] = remoteEvals[en];
+        }
+      });
+    });
+    showToast('✅ Your data reloaded from Firebase!');
+    renderPlayerList();
+  } catch(e) {
+    showToast('❌ Failed to reload — check connection');
+    console.error(e);
   }
 }
 
