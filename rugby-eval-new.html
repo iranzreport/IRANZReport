@@ -118,7 +118,7 @@
   /* REPORT */
   .report-hero { background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 60%,#0f2d1a 100%); border-radius:16px; padding:36px; margin-bottom:28px; display:flex; gap:28px; align-items:center; border:1.5px solid var(--border); position:relative; overflow:hidden; }
   .report-hero::before { content:''; position:absolute; top:-30px; right:-30px; width:200px; height:200px; background:radial-gradient(circle,rgba(34,197,94,0.12) 0%,transparent 70%); pointer-events:none; }
-  .report-avatar { width:120px; height:120px; border-radius:12px; border:3px solid var(--green); object-fit:contain; flex-shrink:0; background:var(--card); display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-size:36px; font-weight:900; color:var(--green); }
+  .report-avatar { width:120px; height:120px; border-radius:12px; border:3px solid var(--green); object-fit:cover; object-position:center top; flex-shrink:0; background:var(--card); display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-size:36px; font-weight:900; color:var(--green); }
   .report-name { font-family:'Barlow Condensed',sans-serif; font-size:40px; font-weight:900; text-transform:uppercase; letter-spacing:2px; color:var(--white); line-height:1; }
   .report-meta { display:flex; flex-wrap:wrap; gap:16px; margin-top:10px; }
   .report-meta-item { font-size:12px; letter-spacing:1px; text-transform:uppercase; }
@@ -1385,7 +1385,7 @@ function generateReport() {
   const photo = pData.photo || null;
   let html = `<div class="report-hero">
     ${photo
-      ? `<img src="${photo}" class="report-avatar" style="object-fit:contain;">`
+      ? `<img src="${photo}" class="report-avatar" style="object-fit:cover;object-position:center top;">`
       : `<div class="report-avatar">${initials}</div>`}
     <div style="flex:1;">
       <div class="report-name">${p.first || ''} ${p.last || ''}</div>
@@ -1460,13 +1460,13 @@ function generateReport() {
       return evalNames.some(n => {
         const scores = (evaluators[n]?.scores || {});
         if (isGym) {
-          return ['kg','reps','1rm'].some(suf => scores[key+'_'+suf]);
+          return ['kg','reps','1rm'].some(suf => { const v = scores[key+'_'+suf]; return v && String(v).trim().length > 0 && parseFloat(v) > 0; });
         }
         return scores[key] != null && parseInt(scores[key]) > 0;
       });
     });
-    const hasAnyComment = evalNames.some(n => evaluators[n]?.comments?.[sec.id]);
-    const hasAnyFitness = isFitness && sec.metrics.some(m => evalNames.some(n => (evaluators[n]?.scores||{})[sec.id+'_'+m]));
+    const hasAnyComment = evalNames.some(n => { const c = evaluators[n]?.comments?.[sec.id]; return c && c.trim().length > 0; });
+    const hasAnyFitness = isFitness && sec.metrics.some(m => evalNames.some(n => { const v = (evaluators[n]?.scores||{})[sec.id+'_'+m]; return v && String(v).trim().length > 0; }));
 
     if (!hasAnyScore && !hasAnyComment && !hasAnyFitness) return; // skip empty sections
     const RPT_GYM_FIELDS = {
@@ -1505,10 +1505,12 @@ function generateReport() {
             return `<div class="report-metric-row"><div class="report-metric-name" style="color:var(--green);font-size:13px;letter-spacing:1.5px;margin-bottom:8px;">${m}</div>${evalRows}</div>`;
           }
           if (isFitness) {
+            const hasFitnessData = evalNames.some(n => { const v = (evaluators[n]?.scores||{})[key]; return v && String(v).trim().length > 0; });
+            if (!hasFitnessData) return '';
             return `<div class="report-metric-row">
               <div class="report-metric-name">${m}</div>
               <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;">
-                ${evalNames.map((n,i) => `<span style="font-size:13px;color:${EVAL_COLORS[i%EVAL_COLORS.length]};">${n}: <strong>${(evaluators[n]?.scores||{})[key]||'—'}</strong></span>`).join('')}
+                ${evalNames.filter(n => { const v = (evaluators[n]?.scores||{})[key]; return v && String(v).trim().length > 0; }).map((n,i) => `<span style="font-size:13px;color:${getEvalColor(n,i)};">${n}: <strong>${(evaluators[n]?.scores||{})[key]}</strong></span>`).join('')}
               </div>
             </div>`;
           }
