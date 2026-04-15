@@ -1354,7 +1354,7 @@ function getScoreColor(score) {
 }
 
 function crossAvg(players_evals, key) {
-  const vals = Object.values(players_evals).map(ev => parseFloat((ev.scores || {})[key])).filter(v => !isNaN(v));
+  const vals = Object.values(players_evals).map(ev => parseFloat((ev.scores || {})[key])).filter(v => !isNaN(v) && v > 0);
   return vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : null;
 }
 
@@ -1502,13 +1502,14 @@ function generateReport() {
             </div>`;
           }
           const avg = crossAvg(evaluators, key);
-          const hasScore = evalNames.some(n => (evaluators[n]?.scores||{})[key] != null);
+          const hasScore = evalNames.some(n => { const v = (evaluators[n]?.scores||{})[key]; return v != null && parseInt(v) > 0; });
           if (!hasScore) return '';
           return `<div class="report-metric-row">
             <div class="report-metric-name">${m}</div>
             <div class="eval-bars">
               ${evalNames.map((n,i) => {
                 const val = (evaluators[n]?.scores||{})[key];
+                if (!val || parseInt(val) === 0) return '';
                 return `<div class="eval-bar-row">
                   <div class="eval-bar-label" style="color:${EVAL_COLORS[i%EVAL_COLORS.length]}">${n}</div>
                   <div class="eval-bar-wrap"><div class="eval-bar-bg"><div class="eval-bar-fill" style="width:${val?val/5*100:0}%;background:${EVAL_COLORS[i%EVAL_COLORS.length]}"></div></div></div>
