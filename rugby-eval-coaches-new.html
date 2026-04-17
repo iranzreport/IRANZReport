@@ -190,6 +190,8 @@
     .header, .btn-row, .export-row, .section-tabs, .sync-bar, .autosave-bar, .toast { display:none !important; }
     body { background:#fff; color:#000; }
     .report-hero { background:#f0f0f0 !important; }
+    textarea { display:none !important; }
+    #overallCommentDisplay { display:block !important; }
   }
 </style>
 </head>
@@ -1611,8 +1613,9 @@ function generateReport() {
         ${evaluators[n].overallComment}
       </div>`).join('')}
     <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;">Additional Coaching Notes</div>
+    <div id="overallCommentDisplay" style="display:${myOverall ? 'block' : 'none'};background:#0f1723;border:1.5px solid var(--border);border-radius:8px;padding:12px 14px;font-size:15px;line-height:1.7;color:var(--white);white-space:pre-wrap;word-wrap:break-word;margin-bottom:8px;">${myOverall}</div>
     <textarea class="comment-input" style="min-height:100px;font-size:15px;line-height:1.7;" placeholder="Add personalised coaching notes for this coach — key strengths, development areas, and next steps..."
-      oninput="setOverallComment(this.value)">${myOverall}</textarea>
+      oninput="setOverallComment(this.value);document.getElementById('overallCommentDisplay').textContent=this.value;document.getElementById('overallCommentDisplay').style.display=this.value?'block':'none';">${myOverall}</textarea>
   </div>`;
 
   html += `<div class="export-row">
@@ -1677,6 +1680,10 @@ async function downloadPDF() {
   const reportEl = document.getElementById('reportContent');
   const hidden = reportEl.querySelectorAll('.export-row, button');
   hidden.forEach(el => el.style.visibility = 'hidden');
+  const textareas = reportEl.querySelectorAll('textarea');
+  textareas.forEach(t => t.style.display = 'none');
+  const displayDivs = reportEl.querySelectorAll('#overallCommentDisplay');
+  displayDivs.forEach(d => { if (d.textContent.trim()) d.style.display = 'block'; });
   try {
     const canvas = await html2canvas(reportEl, { scale:2, backgroundColor:'#0a0a0a', useCORS:true, logging:false });
     const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
@@ -1708,7 +1715,10 @@ async function downloadPDF() {
     pdf.save(((p.first||'') + '_' + (p.last||'') + '_report.pdf').replace(/\s+/g,'_'));
     showToast('PDF Downloaded!');
   } catch(e) { showToast('PDF failed — use Print instead'); console.error(e); }
-  finally { hidden.forEach(el => el.style.visibility = ''); }
+  finally {
+    hidden.forEach(el => el.style.visibility = '');
+    textareas.forEach(t => t.style.display = '');
+  }
 }
 
 function loadScript(src) {
