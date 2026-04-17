@@ -1407,7 +1407,7 @@ function generateReport() {
   const photo = pData.photo || null;
   let html = `<div class="report-hero">
     ${photo
-      ? `<img src="${photo}" class="report-avatar" style="object-fit:cover;object-position:center top;">`
+      ? `<div class="report-avatar" style="background-image:url(${photo});background-size:cover;background-position:center top;"></div>`
       : `<div class="report-avatar">${initials}</div>`}
     <div style="flex:1;">
       <div class="report-name">${p.first || ''} ${p.last || ''}</div>
