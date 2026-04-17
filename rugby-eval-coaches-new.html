@@ -1680,14 +1680,41 @@ async function downloadPDF() {
   await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
   const { jsPDF } = window.jspdf;
   const reportEl = document.getElementById('reportContent');
+
+  // Fix 1: Replace stretched img with square-cropped canvas
+  const avatarImg = reportEl.querySelector('img.report-avatar');
+  let avatarCanvas = null;
+  if (avatarImg) {
+    avatarCanvas = document.createElement('canvas');
+    avatarCanvas.width = 240; avatarCanvas.height = 240;
+    avatarCanvas.className = 'report-avatar';
+    avatarCanvas.style.cssText = 'width:120px;height:120px;border-radius:12px;border:3px solid #22c55e;flex-shrink:0;';
+    const ctx = avatarCanvas.getContext('2d');
+    const tmpImg = new Image();
+    await new Promise(resolve => {
+      tmpImg.onload = () => {
+        const size = Math.min(tmpImg.width, tmpImg.height);
+        const sx = (tmpImg.width - size) / 2;
+        ctx.drawImage(tmpImg, sx, 0, size, size, 0, 0, 240, 240);
+        resolve();
+      };
+      tmpImg.src = avatarImg.src;
+    });
+    avatarImg.parentNode.replaceChild(avatarCanvas, avatarImg);
+  }
+
+  // Fix 2: Make comment div expand fully
+  const commentDiv = reportEl.querySelector('#overallCommentEditDiv');
+  const origHeight = commentDiv ? commentDiv.style.minHeight : '';
+  if (commentDiv) commentDiv.style.minHeight = 'auto';
+
   const hidden = reportEl.querySelectorAll('.export-row, button');
   hidden.forEach(el => el.style.visibility = 'hidden');
   const textareas = reportEl.querySelectorAll('textarea');
   textareas.forEach(t => t.style.display = 'none');
-  const displayDivs = reportEl.querySelectorAll('#overallCommentDisplay');
-  displayDivs.forEach(d => { if (d.textContent.trim()) d.style.display = 'block'; });
+
   try {
-    const canvas = await html2canvas(reportEl, { scale:2, backgroundColor:'#0a0a0a', useCORS:true, logging:false });
+    const canvas = await html2canvas(reportEl, { scale:2, backgroundColor:'#0a0a0a', useCORS:true, logging:false, allowTaint:true });
     const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
@@ -1701,10 +1728,10 @@ async function downloadPDF() {
       const sc = document.createElement('canvas');
       sc.width = canvas.width;
       sc.height = Math.ceil(sh);
-      const ctx = sc.getContext('2d');
-      ctx.fillStyle = '#0a0a0a';
-      ctx.fillRect(0, 0, sc.width, sc.height);
-      ctx.drawImage(canvas, 0, sy, canvas.width, sh, 0, 0, canvas.width, sh);
+      const ctx2 = sc.getContext('2d');
+      ctx2.fillStyle = '#0a0a0a';
+      ctx2.fillRect(0, 0, sc.width, sc.height);
+      ctx2.drawImage(canvas, 0, sy, canvas.width, sh, 0, 0, canvas.width, sh);
       if (!first) pdf.addPage();
       pdf.setFillColor(10, 10, 10);
       pdf.rect(0, 0, pageW, pageH, 'F');
@@ -1713,11 +1740,13 @@ async function downloadPDF() {
       first = false;
     }
     const roster = sessionData.roster || DEFAULT_ROSTER;
-    const p = roster.find(pl => playerKey(pl) === currentPlayerKey) || {};
-    pdf.save(((p.first||'') + '_' + (p.last||'') + '_report.pdf').replace(/\s+/g,'_'));
+    const p2 = roster.find(pl => playerKey(pl) === currentPlayerKey) || {};
+    pdf.save(((p2.first||'') + '_' + (p2.last||'') + '_report.pdf').replace(/\s+/g,'_'));
     showToast('PDF Downloaded!');
   } catch(e) { showToast('PDF failed — use Print instead'); console.error(e); }
   finally {
+    if (avatarCanvas && avatarImg) avatarCanvas.parentNode.replaceChild(avatarImg, avatarCanvas);
+    if (commentDiv) commentDiv.style.minHeight = origHeight;
     hidden.forEach(el => el.style.visibility = '');
     textareas.forEach(t => t.style.display = '');
   }
