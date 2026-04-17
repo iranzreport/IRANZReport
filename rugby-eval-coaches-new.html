@@ -1502,12 +1502,23 @@ function generateReport() {
           if (isGym) {
             const fields = RPT_GYM_FIELDS[m];
             if (fields === null) return '';
+            const hasAnyGymData = evalNames.some(n => fields.some(f => {
+              const v = (evaluators[n]?.scores||{})[key+'_'+f.suffix];
+              return v && parseFloat(v) > 0;
+            }));
+            if (!hasAnyGymData) return '';
             const evalRows = evalNames.map((n,i) => {
               const color = getEvalColor(n, i);
+              const hasData = fields.some(f => {
+                const v = (evaluators[n]?.scores||{})[key+'_'+f.suffix];
+                return v && parseFloat(v) > 0;
+              });
+              if (!hasData) return '';
               const cells = fields.map(f => {
                 const fkey = key+'_'+f.suffix;
                 const val = (evaluators[n]?.scores||{})[fkey];
-                return `<span style="margin-right:16px;font-size:13px;color:${color}"><span style="color:var(--muted);font-size:11px;text-transform:uppercase;">${f.label}</span> <strong style="font-size:16px;">${val||'—'}</strong></span>`;
+                if (!val || parseFloat(val) === 0) return '';
+                return `<span style="margin-right:16px;font-size:13px;color:${color}"><span style="color:var(--muted);font-size:11px;text-transform:uppercase;">${f.label}</span> <strong style="font-size:16px;">${val}</strong></span>`;
               }).join('');
               return `<div style="margin-bottom:6px;"><span style="font-size:11px;color:${color};letter-spacing:1px;text-transform:uppercase;margin-right:10px;">◎ ${n}</span>${cells}</div>`;
             }).join('');
