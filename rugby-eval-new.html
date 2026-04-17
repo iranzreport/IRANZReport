@@ -1629,9 +1629,11 @@ function generateReport() {
         ${evaluators[n].overallComment}
       </div>`).join('')}
     <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;">Additional Coaching Notes</div>
-    <div id="overallCommentDisplay" style="display:${myOverall ? 'block' : 'none'};background:#0f1723;border:1.5px solid var(--border);border-radius:8px;padding:12px 14px;font-size:15px;line-height:1.7;color:var(--white);white-space:pre-wrap;word-wrap:break-word;margin-bottom:8px;">${myOverall}</div>
-    <textarea class="comment-input" style="min-height:100px;font-size:15px;line-height:1.7;" placeholder="Add personalised coaching notes for this player — key strengths, development areas, and next steps..."
-      oninput="setOverallComment(this.value);document.getElementById('overallCommentDisplay').textContent=this.value;document.getElementById('overallCommentDisplay').style.display=this.value?'block':'none';">${myOverall}</textarea>
+    <div id="overallCommentEditDiv" contenteditable="true"
+      style="min-height:80px;background:#0f1723;border:1.5px solid var(--border);border-radius:8px;padding:12px 14px;font-size:15px;line-height:1.7;color:var(--white);white-space:pre-wrap;word-wrap:break-word;outline:none;cursor:text;"
+      oninput="setOverallComment(this.innerText)"
+      onfocus="this.style.borderColor='var(--green)'"
+      onblur="this.style.borderColor='var(--border)'">${myOverall}</div>
   </div>`;
 
   html += `<div class="export-row">
