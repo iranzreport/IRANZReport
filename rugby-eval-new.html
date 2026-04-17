@@ -1367,7 +1367,29 @@ function generateReport() {
   const pData = sessionData.players[currentPlayerKey] || { evaluators: {} };
   const roster = sessionData.roster || DEFAULT_ROSTER;
   const p = roster.find(pl => playerKey(pl) === currentPlayerKey) || {};
-  const evaluators = pData.evaluators || {};
+  const rawEvaluators = pData.evaluators || {};
+
+  // Deduplicate evaluators — merge underscore versions into space versions
+  // e.g. "Dave_Ellis" and "Dave Ellis" are the same person
+  const evaluators = {};
+  Object.keys(rawEvaluators).forEach(name => {
+    const decoded = decodeEvalName(name);
+    if (!evaluators[decoded]) {
+      evaluators[decoded] = JSON.parse(JSON.stringify(rawEvaluators[name]));
+    } else {
+      // Merge scores and comments — take whichever has more data
+      const existing = evaluators[decoded];
+      const incoming = rawEvaluators[name];
+      const mergedScores = Object.assign({}, incoming.scores || {}, existing.scores || {});
+      const mergedComments = Object.assign({}, incoming.comments || {}, existing.comments || {});
+      evaluators[decoded] = {
+        scores: mergedScores,
+        comments: mergedComments,
+        overallComment: existing.overallComment || incoming.overallComment || ''
+      };
+    }
+  });
+
   const evalNames = Object.keys(evaluators);
   const multiEval = evalNames.length > 1;
 
