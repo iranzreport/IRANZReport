@@ -318,6 +318,7 @@
       <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;" onclick="copyShareLink()">🔗 Copy Join Link</button>
       <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;" onclick="reloadMyData()">↻ Reload My Data</button>
       <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;" onclick="refreshPlayerList()">↻ Refresh</button>
+      <button class="btn btn-primary" style="font-size:12px;padding:8px 16px;background:var(--green);color:#000;" onclick="downloadAllPDFs()">⬇️ Download All PDFs</button>
     </div>
   </div>
 
@@ -1734,6 +1735,55 @@ function showAutosave() {
 }
 
 // ── PDF DOWNLOAD ──────────────────────────────────────
+async function downloadAllPDFs() {
+  const roster = sessionData.roster || DEFAULT_ROSTER;
+  const total = roster.length;
+  showToast(`Generating ${total} PDFs — please wait...`);
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+
+  for (let i = 0; i < roster.length; i++) {
+    const p = roster[i];
+    const pk = playerKey(p);
+    showToast(`Generating ${i+1}/${total}: ${p.first} ${p.last}...`);
+    
+    // Load fresh data from Firebase for this player
+    currentPlayerKey = pk;
+    if (!sessionData.players) sessionData.players = {};
+    if (!sessionData.players[pk]) sessionData.players[pk] = { info: p, evaluators: {} };
+    try {
+      const data = await fbGet('/' + sessionKey(sessionName) + '/players/' + pk);
+      if (data && data.evaluators) {
+        Object.keys(data.evaluators).forEach(en => {
+          const realName = decodeEvalName(en);
+          if (realName === myEvalName || en === encodeEvalName(myEvalName)) {
+            const localData = sessionData.players[pk].evaluators[myEvalName] || {};
+            const remoteData = data.evaluators[en] || {};
+            sessionData.players[pk].evaluators[myEvalName] = {
+              scores: Object.assign({}, remoteData.scores || {}, localData.scores || {}),
+              comments: Object.assign({}, remoteData.comments || {}, localData.comments || {}),
+              overallComment: localData.overallComment || remoteData.overallComment || ''
+            };
+          } else {
+            sessionData.players[pk].evaluators[realName] = data.evaluators[en];
+          }
+        });
+        if (data.photo) sessionData.players[pk].photo = data.photo;
+      }
+    } catch(e) { console.error('Failed to load', pk, e); }
+
+    // Generate report HTML
+    generateReport();
+    // Wait for DOM to render
+    await new Promise(r => setTimeout(r, 800));
+    // Download PDF for this player
+    await downloadPDF();
+    // Small delay between downloads
+    await new Promise(r => setTimeout(r, 500));
+  }
+  showToast(`✅ All ${total} PDFs downloaded!`);
+}
+
 async function downloadPDF() {
   showToast('Generating PDF…');
   await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
