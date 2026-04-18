@@ -193,6 +193,8 @@
     textarea { display:none !important; }
     #overallCommentDisplay { display:block !important; }
     .pdf-hide { display:none !important; }
+    .export-row { display:none !important; }
+    .pdf-hide { display:none !important; }
   }
 </style>
 </head>
@@ -870,18 +872,44 @@ function openPlayerGuideImage(idx) {
   lb.style.display = 'flex';
 }
 
-function viewReport(pk) {
+async function viewReport(pk) {
   currentPlayerKey = pk;
   viewingEval = myEvalName;
-  // Ensure player exists in sessionData
   if (!sessionData.players) sessionData.players = {};
   if (!sessionData.players[pk]) {
     const roster = sessionData.roster || DEFAULT_ROSTER;
     const p = roster.find(pl => playerKey(pl) === pk);
     sessionData.players[pk] = { info: p || {}, evaluators: {} };
   }
-  generateReport();
   goToScreen(3);
+  // Show loading state
+  document.getElementById('reportContent').innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted);">Loading report data...</div>';
+  // Always fetch fresh data from Firebase before generating report
+  try {
+    const data = await fbGet('/' + sessionKey(sessionName) + '/players/' + pk);
+    if (data && data.evaluators) {
+      if (!sessionData.players[pk]) sessionData.players[pk] = { info: {}, evaluators: {} };
+      const remoteEvals = data.evaluators;
+      Object.keys(remoteEvals).forEach(en => {
+        const realName = decodeEvalName(en);
+        if (realName === myEvalName || en === encodeEvalName(myEvalName)) {
+          // Merge own data - local takes priority
+          const localData = sessionData.players[pk].evaluators[myEvalName] || {};
+          const remoteData = remoteEvals[en] || {};
+          sessionData.players[pk].evaluators[myEvalName] = {
+            scores: Object.assign({}, remoteData.scores || {}, localData.scores || {}),
+            comments: Object.assign({}, remoteData.comments || {}, localData.comments || {}),
+            overallComment: localData.overallComment || remoteData.overallComment || ''
+          };
+        } else {
+          sessionData.players[pk].evaluators[realName] = remoteEvals[en];
+        }
+      });
+      if (data.photo) sessionData.players[pk].photo = data.photo;
+      if (data.player_guide) sessionData.players[pk].player_guide = data.player_guide;
+    }
+  } catch(e) { console.error('Report data fetch failed', e); }
+  generateReport();
 }
 
 // ── EDIT PLAYER ───────────────────────────────────────
@@ -1768,8 +1796,9 @@ async function downloadPDF() {
       if (pageCount > 0) pdf.addPage();
       pdf.setFillColor(10, 10, 10);
       pdf.rect(0, 0, pageW, pageH, 'F');
-      // Place image so current page shows correct portion
-      pdf.addImage(imgData, 'JPEG', 0, -yPos, imgW, imgH);
+      // Overlap by 0.5mm to eliminate white line between pages
+      const overlap = pageCount > 0 ? 0.5 : 0;
+      pdf.addImage(imgData, 'JPEG', 0, -yPos + overlap, imgW, imgH);
       yPos += pageH;
       pageCount++;
     }
