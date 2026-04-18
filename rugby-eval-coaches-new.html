@@ -192,6 +192,7 @@
     .report-hero { background:#f0f0f0 !important; }
     textarea { display:none !important; }
     #overallCommentDisplay { display:block !important; }
+    .pdf-hide { display:none !important; }
   }
 </style>
 </head>
@@ -1639,7 +1640,7 @@ function generateReport() {
     <button class="btn-export" onclick="downloadPDF()">⬇️ Download PDF</button>
     <button class="btn-export" onclick="window.print()">🖨 Print Report</button>
   </div>
-  <div style="background:linear-gradient(135deg,#0f2d1a,#0a1a10);border:2px solid var(--green);border-radius:14px;padding:28px 32px;margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;">
+  <div class="pdf-hide" style="background:linear-gradient(135deg,#0f2d1a,#0a1a10);border:2px solid var(--green);border-radius:14px;padding:28px 32px;margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;">
     <div>
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:var(--white);margin-bottom:4px;">Ready for the next coach?</div>
       <div style="font-size:13px;color:var(--muted);">Scores are saved. Go back to the player list.</div>
@@ -1731,6 +1732,8 @@ async function downloadPDF() {
 
   const hidden = reportEl.querySelectorAll('.export-row, button');
   hidden.forEach(el => el.style.visibility = 'hidden');
+  const pdfHide = reportEl.querySelectorAll('.pdf-hide');
+  pdfHide.forEach(el => el.style.display = 'none');
   const textareas = reportEl.querySelectorAll('textarea');
   textareas.forEach(t => t.style.display = 'none');
 
@@ -1739,26 +1742,20 @@ async function downloadPDF() {
     const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
-    const imgH = (canvas.height * pageW) / canvas.width;
-    let remaining = imgH;
-    let first = true;
-    while (remaining > 0) {
-      const sliceH = Math.min(remaining, pageH);
-      const sy = Math.floor(((imgH - remaining) / imgH) * canvas.height);
-      const sh = Math.ceil((sliceH / imgH) * canvas.height);
-      const sc = document.createElement('canvas');
-      sc.width = canvas.width;
-      sc.height = sh;
-      const ctx2 = sc.getContext('2d');
-      ctx2.fillStyle = '#0a0a0a';
-      ctx2.fillRect(0, 0, sc.width, sc.height);
-      ctx2.drawImage(canvas, 0, sy, canvas.width, sh, 0, 0, canvas.width, sh);
-      if (!first) pdf.addPage();
+    const imgW = pageW;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    // Add image across multiple pages with no gaps
+    let yPos = 0;
+    let pageCount = 0;
+    while (yPos < imgH) {
+      if (pageCount > 0) pdf.addPage();
       pdf.setFillColor(10, 10, 10);
       pdf.rect(0, 0, pageW, pageH, 'F');
-      pdf.addImage(sc.toDataURL('image/png'), 'PNG', 0, 0, pageW, sliceH);
-      remaining -= sliceH;
-      first = false;
+      // Place image so current page shows correct portion
+      pdf.addImage(imgData, 'JPEG', 0, -yPos, imgW, imgH);
+      yPos += pageH;
+      pageCount++;
     }
     const roster = sessionData.roster || DEFAULT_ROSTER;
     const p2 = roster.find(pl => playerKey(pl) === currentPlayerKey) || {};
@@ -1769,6 +1766,7 @@ async function downloadPDF() {
     if (avatarCanvas && avatarImg) avatarCanvas.parentNode.replaceChild(avatarImg, avatarCanvas);
     if (commentDiv && origCommentStyle !== undefined) commentDiv.setAttribute('style', origCommentStyle);
     hidden.forEach(el => el.style.visibility = '');
+    pdfHide.forEach(el => el.style.display = '');
     textareas.forEach(t => t.style.display = '');
   }
 }
