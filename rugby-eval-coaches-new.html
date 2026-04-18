@@ -1614,7 +1614,7 @@ function generateReport() {
       </div>`).join('')}
     <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;">Additional Coaching Notes</div>
     <div id="overallCommentEditDiv" contenteditable="true"
-      style="min-height:80px;background:#0f1723;border:1.5px solid var(--border);border-radius:8px;padding:12px 14px;font-size:15px;line-height:1.7;color:var(--white);white-space:pre-wrap;word-wrap:break-word;outline:none;cursor:text;"
+      style="min-height:80px;height:auto;overflow:visible;background:#0f1723;border:1.5px solid var(--border);border-radius:8px;padding:12px 14px;font-size:15px;line-height:1.7;color:var(--white);white-space:pre-wrap;word-wrap:break-word;outline:none;cursor:text;"
       oninput="setOverallComment(this.innerText)"
       onfocus="this.style.borderColor='var(--green)'"
       onblur="this.style.borderColor='var(--border)'">${myOverall}</div>
@@ -1684,29 +1684,35 @@ async function downloadPDF() {
   // Fix 1: Replace stretched img with square-cropped canvas
   const avatarImg = reportEl.querySelector('img.report-avatar');
   let avatarCanvas = null;
-  if (avatarImg) {
+  if (avatarImg && avatarImg.src) {
     avatarCanvas = document.createElement('canvas');
     avatarCanvas.width = 240; avatarCanvas.height = 240;
     avatarCanvas.className = 'report-avatar';
-    avatarCanvas.style.cssText = 'width:120px;height:120px;border-radius:12px;border:3px solid #22c55e;flex-shrink:0;';
+    avatarCanvas.style.cssText = 'width:120px;height:120px;border-radius:12px;border:3px solid #22c55e;flex-shrink:0;display:block;';
     const ctx = avatarCanvas.getContext('2d');
-    const tmpImg = new Image();
     await new Promise(resolve => {
+      const tmpImg = new Image();
       tmpImg.onload = () => {
-        const size = Math.min(tmpImg.width, tmpImg.height);
-        const sx = (tmpImg.width - size) / 2;
+        const size = Math.min(tmpImg.naturalWidth, tmpImg.naturalHeight);
+        const sx = (tmpImg.naturalWidth - size) / 2;
         ctx.drawImage(tmpImg, sx, 0, size, size, 0, 0, 240, 240);
         resolve();
       };
+      tmpImg.onerror = resolve;
       tmpImg.src = avatarImg.src;
     });
     avatarImg.parentNode.replaceChild(avatarCanvas, avatarImg);
   }
 
-  // Fix 2: Make comment div expand fully
+  // Fix 2: Make comment div expand fully to show all text
   const commentDiv = reportEl.querySelector('#overallCommentEditDiv');
-  const origHeight = commentDiv ? commentDiv.style.minHeight : '';
-  if (commentDiv) commentDiv.style.minHeight = 'auto';
+  const origCommentStyle = commentDiv ? commentDiv.getAttribute('style') : '';
+  if (commentDiv) {
+    commentDiv.style.minHeight = 'auto';
+    commentDiv.style.height = 'auto';
+    commentDiv.style.overflow = 'visible';
+    commentDiv.style.maxHeight = 'none';
+  }
 
   const hidden = reportEl.querySelectorAll('.export-row, button');
   hidden.forEach(el => el.style.visibility = 'hidden');
@@ -1723,11 +1729,11 @@ async function downloadPDF() {
     let first = true;
     while (remaining > 0) {
       const sliceH = Math.min(remaining, pageH);
-      const sy = ((imgH - remaining) / imgH) * canvas.height;
-      const sh = (sliceH / imgH) * canvas.height;
+      const sy = Math.floor(((imgH - remaining) / imgH) * canvas.height);
+      const sh = Math.ceil((sliceH / imgH) * canvas.height);
       const sc = document.createElement('canvas');
       sc.width = canvas.width;
-      sc.height = Math.ceil(sh);
+      sc.height = sh;
       const ctx2 = sc.getContext('2d');
       ctx2.fillStyle = '#0a0a0a';
       ctx2.fillRect(0, 0, sc.width, sc.height);
@@ -1735,7 +1741,7 @@ async function downloadPDF() {
       if (!first) pdf.addPage();
       pdf.setFillColor(10, 10, 10);
       pdf.rect(0, 0, pageW, pageH, 'F');
-      pdf.addImage(sc.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, pageW, sliceH);
+      pdf.addImage(sc.toDataURL('image/png'), 'PNG', 0, 0, pageW, sliceH);
       remaining -= sliceH;
       first = false;
     }
@@ -1746,7 +1752,7 @@ async function downloadPDF() {
   } catch(e) { showToast('PDF failed — use Print instead'); console.error(e); }
   finally {
     if (avatarCanvas && avatarImg) avatarCanvas.parentNode.replaceChild(avatarImg, avatarCanvas);
-    if (commentDiv) commentDiv.style.minHeight = origHeight;
+    if (commentDiv && origCommentStyle !== undefined) commentDiv.setAttribute('style', origCommentStyle);
     hidden.forEach(el => el.style.visibility = '');
     textareas.forEach(t => t.style.display = '');
   }
