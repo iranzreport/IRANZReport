@@ -1765,25 +1765,14 @@ async function downloadPDF() {
 
   try {
     const canvas = await html2canvas(reportEl, { scale:2, backgroundColor:'#0a0a0a', useCORS:true, logging:false, allowTaint:true });
-    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
-    const imgW = pageW;
-    const imgH = (canvas.height * imgW) / canvas.width;
+    // Create a single-page PDF sized to fit the entire report
+    const pageW = 210; // A4 width in mm
+    const pageH = Math.ceil((canvas.height * pageW) / canvas.width);
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:[pageW, pageH] });
+    pdf.setFillColor(10, 10, 10);
+    pdf.rect(0, 0, pageW, pageH, 'F');
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
-    // Add image across multiple pages with no gaps
-    let yPos = 0;
-    let pageCount = 0;
-    while (yPos < imgH) {
-      if (pageCount > 0) pdf.addPage();
-      pdf.setFillColor(10, 10, 10);
-      pdf.rect(0, 0, pageW, pageH, 'F');
-      // Overlap by 0.5mm to eliminate white line between pages
-      const overlap = pageCount > 0 ? 0.5 : 0;
-      pdf.addImage(imgData, 'JPEG', 0, -yPos + overlap, imgW, imgH);
-      yPos += pageH;
-      pageCount++;
-    }
+    pdf.addImage(imgData, 'JPEG', 0, 0, pageW, pageH);
     const roster = sessionData.roster || DEFAULT_ROSTER;
     const p2 = roster.find(pl => playerKey(pl) === currentPlayerKey) || {};
     pdf.save(((p2.first||'') + '_' + (p2.last||'') + '_report.pdf').replace(/\s+/g,'_'));
