@@ -1655,7 +1655,7 @@ function generateReport() {
         ${evaluators[n].overallComment}
       </div>`).join('')}
     <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;">Additional Coaching Notes</div>
-    <div id="overallCommentEditDiv" contenteditable="true"
+    <div id="overallCommentEditDiv" contenteditable="true" data-empty="${myOverall ? 'false' : 'true'}"
       style="min-height:80px;height:auto;overflow:visible;background:#0f1723;border:1.5px solid var(--border);border-radius:8px;padding:12px 14px;font-size:15px;line-height:1.7;color:var(--white);white-space:pre-wrap;word-wrap:break-word;outline:none;cursor:text;"
       oninput="setOverallComment(this.innerText)"
       onfocus="this.style.borderColor='var(--green)'"
@@ -1765,14 +1765,32 @@ async function downloadPDF() {
 
   try {
     const canvas = await html2canvas(reportEl, { scale:2, backgroundColor:'#0a0a0a', useCORS:true, logging:false, allowTaint:true });
-    // Create a single-page PDF sized to fit the entire report
-    const pageW = 210; // A4 width in mm
-    const pageH = Math.ceil((canvas.height * pageW) / canvas.width);
-    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:[pageW, pageH] });
-    pdf.setFillColor(10, 10, 10);
-    pdf.rect(0, 0, pageW, pageH, 'F');
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
-    pdf.addImage(imgData, 'JPEG', 0, 0, pageW, pageH);
+    // Hide empty comment box before capture
+    const emptyComment = reportEl.querySelector('#overallCommentEditDiv');
+    const commentLabel = emptyComment ? emptyComment.previousElementSibling : null;
+    if (emptyComment && !emptyComment.innerText.trim()) {
+      emptyComment.style.display = 'none';
+      if (commentLabel) commentLabel.style.display = 'none';
+    }
+    const canvas2 = await html2canvas(reportEl, { scale:2, backgroundColor:'#0a0a0a', useCORS:true, logging:false, allowTaint:true });
+    if (emptyComment) emptyComment.style.display = '';
+    if (commentLabel) commentLabel.style.display = '';
+
+    // Proper A4 multi-page PDF with no white lines
+    const a4W = 210;
+    const a4H = 297;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const totalH = (canvas2.height * a4W) / canvas2.width;
+    const imgData2 = canvas2.toDataURL('image/jpeg', 1.0);
+    let pages = Math.ceil(totalH / a4H);
+    for (let i = 0; i < pages; i++) {
+      if (i > 0) pdf.addPage();
+      // Fill page black
+      pdf.setFillColor(10, 10, 10);
+      pdf.rect(0, 0, a4W, a4H, 'F');
+      // Position image so this page shows the right slice - negative y offset
+      pdf.addImage(imgData2, 'JPEG', 0, -(i * a4H), a4W, totalH);
+    }
     const roster = sessionData.roster || DEFAULT_ROSTER;
     const p2 = roster.find(pl => playerKey(pl) === currentPlayerKey) || {};
     pdf.save(((p2.first||'') + '_' + (p2.last||'') + '_report.pdf').replace(/\s+/g,'_'));
