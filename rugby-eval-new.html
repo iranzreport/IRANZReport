@@ -1403,6 +1403,21 @@ function generateReport() {
     }
   });
 
+  // Always ensure the current evaluator's LIVE local data is included
+  if (myEvalName && pData.evaluators && pData.evaluators[myEvalName]) {
+    const liveData = pData.evaluators[myEvalName];
+    if (!evaluators[myEvalName]) {
+      evaluators[myEvalName] = JSON.parse(JSON.stringify(liveData));
+    } else {
+      const existing = evaluators[myEvalName];
+      evaluators[myEvalName] = {
+        scores: Object.assign({}, existing.scores || {}, liveData.scores || {}),
+        comments: Object.assign({}, existing.comments || {}, liveData.comments || {}),
+        overallComment: liveData.overallComment || existing.overallComment || ''
+      };
+    }
+  }
+
   const evalNames = Object.keys(evaluators);
   const multiEval = evalNames.length > 1;
 
