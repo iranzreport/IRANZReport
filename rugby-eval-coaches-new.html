@@ -1781,15 +1781,17 @@ async function downloadPDF() {
     const a4H = 297;
     const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
     const totalH = (canvas2.height * a4W) / canvas2.width;
-    const imgData2 = canvas2.toDataURL('image/jpeg', 1.0);
+    const imgData2 = canvas2.toDataURL('image/jpeg', 0.95);
     let pages = Math.ceil(totalH / a4H);
     for (let i = 0; i < pages; i++) {
       if (i > 0) pdf.addPage();
-      // Fill page black
       pdf.setFillColor(10, 10, 10);
       pdf.rect(0, 0, a4W, a4H, 'F');
-      // Position image so this page shows the right slice - negative y offset
-      pdf.addImage(imgData2, 'JPEG', 0, -(i * a4H), a4W, totalH);
+      pdf.saveGraphicsState();
+      pdf.rect(0, 0, a4W, a4H, 'S');
+      pdf.internal.write('W n');
+      pdf.addImage(imgData2, 'JPEG', 0, -(i * a4H), a4W, totalH, '', 'FAST');
+      pdf.restoreGraphicsState();
     }
     const roster = sessionData.roster || DEFAULT_ROSTER;
     const p2 = roster.find(pl => playerKey(pl) === currentPlayerKey) || {};
