@@ -17,7 +17,7 @@ export const COURSES = [
 export function AuthProvider({ children }) {
   const [user, setUser]       = useState(null);
   const [profile, setProfile] = useState(null);
-  const [course, setCourse]   = useState(null);
+  const [course, setCourse]   = useState(() => localStorage.getItem('iranz_course') || null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,6 +50,7 @@ export function AuthProvider({ children }) {
 
   function selectCourse(courseId) {
     setCourse(courseId);
+    localStorage.setItem('iranz_course', courseId);
   }
 
   return (

@@ -23,10 +23,13 @@ export const IRANZ_USA_ROSTER = [
   { first: 'Ronan', last: "O'Shea", weight: '150', height: '182', primaryPos: '14. Right Wing', secondaryPos: '15. Fullback', club: 'Scottsdale Blues', gender: 'Male' },
   { first: 'Samantha', last: 'Insley', weight: '56.7', height: '166', primaryPos: '7. Openside Flanker', secondaryPos: '6. Blindside Flanker', club: 'Scottsdale Vixens', gender: 'Female' },
   { first: 'Tyler', last: 'Larson', weight: '99', height: '190', primaryPos: '7. Openside Flanker', secondaryPos: '8. Number 8', club: 'Arizona State University', gender: 'Male' },
-  { first: 'Meatuai', last: 'Samuel', weight: '', height: '177', primaryPos: '12. Inside Centre', secondaryPos: '1. Loosehead Prop', club: '', gender: 'Male' },
+  { first: 'Sam', last: 'Meatuai', weight: '', height: '177', primaryPos: '12. Inside Centre', secondaryPos: '1. Loosehead Prop', club: '', gender: 'Male' },
   { first: 'Eli James', last: 'Torres', weight: '', height: '177', primaryPos: '10. Fly Half', secondaryPos: '13. Outside Centre', club: '', gender: 'Male' },
   { first: 'Charlie', last: 'Cross', weight: '', height: '', primaryPos: '2. Hooker', secondaryPos: '14. Right Wing', club: '', gender: 'Female' },
   { first: 'Caleb', last: 'Espino', weight: '', height: '180', primaryPos: '7. Openside Flanker', secondaryPos: '1. Loosehead Prop', club: '', gender: 'Male' },
+  { first: 'Cohen', last: 'Mahnke', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: 'Male' },
+  { first: 'Cody', last: 'Hart', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: 'Male' },
+  { first: 'Masiu', last: 'Aholelei', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: 'Male' },
 ];
 
 export const DEFAULT_ROSTER = IRANZ_USA_ROSTER;
