@@ -182,6 +182,15 @@ export default function Report() {
 
       await new Promise(r => setTimeout(r, 600));
 
+      // Measure each top-level card's vertical position BEFORE screenshotting,
+      // so we know exactly where safe page-break points are.
+      const rptTop = rpt.getBoundingClientRect().top;
+      const topLevelCards = Array.from(rpt.children);
+      const cardBoundaries = topLevelCards.map(el => {
+        const r = el.getBoundingClientRect();
+        return { top: r.top - rptTop, bottom: r.bottom - rptTop };
+      });
+
       const canvas = await html2canvas(rpt, {
         scale: 2,
         backgroundColor: '#000000',
@@ -198,17 +207,47 @@ export default function Report() {
 
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const a4W = 210, a4H = 297;
-      const totalH = (canvas.height * a4W) / canvas.width;
+      const totalHmm = (canvas.height * a4W) / canvas.width;
+      const cssToPx = canvas.width / 1000; // capture width was forced to 1000 css px
+      const pxPerMm = canvas.width / a4W;
+      const pageHpx = a4H * pxPerMm;
+
+      // Convert card boundaries (css px) into canvas px
+      const boundariesPx = cardBoundaries.map(b => ({
+        top: b.top * cssToPx,
+        bottom: b.bottom * cssToPx,
+      }));
+
+      // Build cut points: walk through cards, and whenever adding the next card
+      // would exceed a page, cut BEFORE that card (i.e. at the bottom of the previous one).
+      const cuts = [0];
+      let pageStart = 0;
+      for (let i = 0; i < boundariesPx.length; i++) {
+        const card = boundariesPx[i];
+        if (card.bottom - pageStart > pageHpx && card.top > pageStart) {
+          // start a new page right before this card
+          cuts.push(card.top);
+          pageStart = card.top;
+        }
+        // If a single card is taller than a full page, we just let it overflow onto the next
+        // page naturally (rare edge case for very long comment boxes) rather than slicing it.
+      }
+      cuts.push(canvas.height);
+
       const imgData = canvas.toDataURL('image/jpeg', 0.92);
-      const pages = Math.ceil(totalH / a4H);
-      for (let i = 0; i < pages; i++) {
+      for (let i = 0; i < cuts.length - 1; i++) {
+        const sliceTopPx = cuts[i];
+        const sliceBottomPx = cuts[i + 1];
+        const sliceHmm = ((sliceBottomPx - sliceTopPx) * a4W) / canvas.width;
+        const offsetMm = (sliceTopPx * a4W) / canvas.width;
+
         if (i > 0) pdf.addPage();
         pdf.setFillColor(0, 0, 0);
         pdf.rect(0, 0, a4W, a4H, 'F');
         pdf.saveGraphicsState();
         pdf.rect(0, 0, a4W, a4H, 'S');
         pdf.internal.write('W n');
-        pdf.addImage(imgData, 'JPEG', 0, -(i * a4H), a4W, totalH, '', 'FAST');
+        pdf.addImage(imgData, 'JPEG', 0, -offsetMm, a4W, totalHmm, '', 'FAST');
         pdf.restoreGraphicsState();
       }
       pdf.save(`${p.first || 'player'}_${p.last || ''}_report.pdf`.replace(/\s+/g, '_'));
