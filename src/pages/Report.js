@@ -15,6 +15,7 @@ export default function Report() {
   const [loading, setLoading] = useState(true);
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [overall, setOverall] = useState('');
+  const [overallDirty, setOverallDirty] = useState(false);
   const [saveTimer, setSaveTimer] = useState(null);
   const [globalImage, setGlobalImage] = useState(null);
   const [uploadingGlobal, setUploadingGlobal] = useState(false);
@@ -53,6 +54,7 @@ export default function Report() {
             if (gSnap.exists()) setGlobalImage(gSnap.val());
           } catch(e) {}
           setOverall(evs[profile?.name]?.overallComment || '');
+          setOverallDirty(false);
         }
       } catch (e) { console.error(e); }
       setLoading(false);
@@ -62,14 +64,16 @@ export default function Report() {
 
   function handleOverall(val) {
     setOverall(val);
-    clearTimeout(saveTimer);
-    const timer = setTimeout(async () => {
-      const myD = evaluators[profile?.name] || {};
-      const newD = { ...myD, overallComment: val };
-      setEvaluators(prev => ({ ...prev, [profile.name]: newD }));
-      await set(ref(db, sessionKey(course) + '/players/' + pk + '/evaluators/' + encodeEval(profile.name) + '/overallComment'), val);
-    }, 1000);
-    setSaveTimer(timer);
+    setOverallDirty(true);
+  }
+
+  async function saveOverall() {
+    const myD = evaluators[profile?.name] || {};
+    const newD = { ...myD, overallComment: overall };
+    setEvaluators(prev => ({ ...prev, [profile.name]: newD }));
+    await set(ref(db, sessionKey(course) + '/players/' + pk + '/evaluators/' + encodeEval(profile.name) + '/overallComment'), overall);
+    setOverallDirty(false);
+    window.showToast?.('Comment saved!');
   }
 
   const ens = Object.keys(evaluators);
@@ -407,6 +411,14 @@ export default function Report() {
           style={{ minHeight: 80, height: 'auto', overflow: 'visible', background: '#0a1a0a', border: '1.5px solid #166534', borderRadius: 8, padding: '12px 14px', fontSize: 15, lineHeight: 1.7, color: 'var(--white)', outline: 'none', whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
           {overall}
         </div>
+        <button
+          className="btn btn-primary"
+          style={{ marginTop: 10, fontSize: 12, padding: '8px 16px', opacity: overallDirty ? 1 : 0.5 }}
+          onClick={saveOverall}
+          disabled={!overallDirty}
+        >
+          {overallDirty ? 'Save Comment' : 'Saved'}
+        </button>
       </div>
       {/* Per-player image gallery */}
       {(gallery.length > 0 || profile?.role === 'admin') && (
