@@ -185,11 +185,16 @@ export default function Report() {
       // Measure each top-level card's vertical position BEFORE screenshotting,
       // so we know exactly where safe page-break points are.
       const rptTop = rpt.getBoundingClientRect().top;
-      const topLevelCards = Array.from(rpt.children);
-      const cardBoundaries = topLevelCards.map(el => {
+      // Collect boundaries from top-level cards AND from likely-deep break points
+      // (anything with a top margin/border that visually reads as its own block:
+      // comment boxes, individual metric rows, gallery items, etc).
+      const breakSelector = '#report-content > *, #report-content > * > div';
+      const candidateEls = Array.from(rpt.querySelectorAll(breakSelector));
+      const cardBoundaries = candidateEls.map(el => {
         const r = el.getBoundingClientRect();
-        return { top: r.top - rptTop, bottom: r.bottom - rptTop };
-      });
+        return { top: r.top - rptTop, bottom: r.bottom - rptTop, height: r.height };
+      }).filter(b => b.height > 4 && b.height < 2000) // ignore zero-height/huge wrapper artifacts
+        .sort((a, b) => a.top - b.top);
 
       const canvas = await html2canvas(rpt, {
         scale: 2,
@@ -218,19 +223,31 @@ export default function Report() {
         bottom: b.bottom * cssToPx,
       }));
 
-      // Build cut points: walk through cards, and whenever adding the next card
-      // would exceed a page, cut BEFORE that card (i.e. at the bottom of the previous one).
+      // Build cut points using a safe approach: starting from the ideal page-height
+      // cut point, search backward for the latest position that does NOT fall inside
+      // any candidate element's vertical range (i.e. a true gap between elements).
+      function isInsideAnyElement(y) {
+        for (let i = 0; i < boundariesPx.length; i++) {
+          const b = boundariesPx[i];
+          if (y > b.top + 1 && y < b.bottom - 1) return true;
+        }
+        return false;
+      }
+
       const cuts = [0];
       let pageStart = 0;
-      for (let i = 0; i < boundariesPx.length; i++) {
-        const card = boundariesPx[i];
-        if (card.bottom - pageStart > pageHpx && card.top > pageStart) {
-          // start a new page right before this card
-          cuts.push(card.top);
-          pageStart = card.top;
+      while (pageStart + pageHpx < canvas.height) {
+        let idealCut = pageStart + pageHpx;
+        let safeCut = idealCut;
+        // search backward up to 40% of a page height for a safe gap
+        const maxSearch = pageHpx * 0.4;
+        let found = false;
+        for (let y = idealCut; y > idealCut - maxSearch && y > pageStart; y -= 2) {
+          if (!isInsideAnyElement(y)) { safeCut = y; found = true; break; }
         }
-        // If a single card is taller than a full page, we just let it overflow onto the next
-        // page naturally (rare edge case for very long comment boxes) rather than slicing it.
+        if (!found) safeCut = idealCut; // fallback: no safe gap found, cut anyway
+        cuts.push(safeCut);
+        pageStart = safeCut;
       }
       cuts.push(canvas.height);
 
