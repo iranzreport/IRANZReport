@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ref, get, set } from 'firebase/database';
 import { db } from '../lib/firebase';
@@ -16,6 +16,7 @@ export default function Report() {
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [overall, setOverall] = useState('');
   const [overallDirty, setOverallDirty] = useState(false);
+  const overallRef = useRef(null);
   const [saveTimer, setSaveTimer] = useState(null);
   const [globalImage, setGlobalImage] = useState(null);
   const [uploadingGlobal, setUploadingGlobal] = useState(false);
@@ -53,8 +54,10 @@ export default function Report() {
             const gSnap = await get(ref(db, sessionKey(course) + '/globalImage'));
             if (gSnap.exists()) setGlobalImage(gSnap.val());
           } catch(e) {}
-          setOverall(evs[profile?.name]?.overallComment || '');
+          const loadedOverall = evs[profile?.name]?.overallComment || '';
+          setOverall(loadedOverall);
           setOverallDirty(false);
+          if (overallRef.current) overallRef.current.innerText = loadedOverall;
         }
       } catch (e) { console.error(e); }
       setLoading(false);
@@ -66,6 +69,8 @@ export default function Report() {
     setOverall(val);
     setOverallDirty(true);
   }
+  // Uncontrolled contentEditable: React no longer re-renders {overall} into the div
+  // on every keystroke, which was resetting the cursor position and reversing typed text.
 
   async function saveOverall() {
     const myD = evaluators[profile?.name] || {};
@@ -407,9 +412,9 @@ export default function Report() {
         </div>
         <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600 }}>Additional Coaching Notes</div>
         <div contentEditable suppressContentEditableWarning
+          ref={overallRef}
           onInput={e => handleOverall(e.currentTarget.innerText)}
           style={{ minHeight: 80, height: 'auto', overflow: 'visible', background: '#0a1a0a', border: '1.5px solid #166534', borderRadius: 8, padding: '12px 14px', fontSize: 15, lineHeight: 1.7, color: 'var(--white)', outline: 'none', whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
-          {overall}
         </div>
         <button
           className="btn btn-primary"
