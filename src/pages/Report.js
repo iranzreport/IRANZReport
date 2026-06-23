@@ -412,9 +412,10 @@ export default function Report() {
         </div>
         <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600 }}>Additional Coaching Notes</div>
         <div contentEditable suppressContentEditableWarning
+          dir="ltr"
           ref={overallRef}
           onInput={e => handleOverall(e.currentTarget.innerText)}
-          style={{ minHeight: 80, height: 'auto', overflow: 'visible', background: '#0a1a0a', border: '1.5px solid #166534', borderRadius: 8, padding: '12px 14px', fontSize: 15, lineHeight: 1.7, color: 'var(--white)', outline: 'none', whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+          style={{ minHeight: 80, height: 'auto', overflow: 'visible', background: '#0a1a0a', border: '1.5px solid #166534', borderRadius: 8, padding: '12px 14px', fontSize: 15, lineHeight: 1.7, color: 'var(--white)', outline: 'none', whiteSpace: 'pre-wrap', wordWrap: 'break-word', unicodeBidi: 'plaintext', textAlign: 'left' }}>
         </div>
         <button
           className="btn btn-primary"
