@@ -53,9 +53,9 @@ export default function Players() {
   }).length;
 
   async function deletePlayer(pk, name) {
-    if (!window.confirm(`Delete ${name}? This will permanently remove all their scores, comments, and photos for this course. This cannot be undone.`)) return;
-    await remove(ref(db, sessionKey(course) + '/players/' + pk));
-    window.showToast?.('Player deleted');
+    if (!window.confirm(`Remove ${name} from the active list? Their existing scores and comments will be kept but hidden, and can be restored later if needed.`)) return;
+    await set(ref(db, sessionKey(course) + '/players/' + pk + '/removed'), true);
+    window.showToast?.('Player removed from list');
     sync();
   }
 
@@ -89,7 +89,7 @@ export default function Players() {
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12, marginBottom: 24 }}>
         {[
-          { num: activeRoster.length, label: isCoach ? 'Coaches' : 'Players' },
+          { num: activeRoster.filter(p => !sessionData.players[playerKey(p)]?.removed).length, label: isCoach ? 'Coaches' : 'Players' },
           { num: evalSet.size, label: 'Evaluators' },
           { num: myScored, label: "You've Scored" },
           { num: Math.round(myScored / DEFAULT_ROSTER.length * 100) + '%', label: 'Progress' },
@@ -103,7 +103,7 @@ export default function Players() {
 
       {/* Player list */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {activeRoster.map(p => {
+        {activeRoster.filter(p => !sessionData.players[playerKey(p)]?.removed).map(p => {
           const pk = playerKey(p);
           const pd = sessionData.players[pk] || { evaluators: {} };
           const evNames = Object.keys(pd.evaluators || {});
