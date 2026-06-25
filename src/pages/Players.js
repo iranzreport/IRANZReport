@@ -23,7 +23,7 @@ export default function Players() {
       if (!data.players) { setSyncing(false); return; }
       const players = {};
       Object.keys(data.players).forEach(pk => {
-        players[pk] = { evaluators: {}, photo: data.players[pk].photo || null };
+        players[pk] = { evaluators: {}, photo: data.players[pk].photo || null, removed: data.players[pk].removed || false };
         const revs = data.players[pk].evaluators || {};
         Object.keys(revs).forEach(en => {
           players[pk].evaluators[decodeEval(en)] = revs[en];
