@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ref, get, set } from 'firebase/database';
+import { ref, get, set, remove } from 'firebase/database';
 import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { DEFAULT_ROSTER, COACH_ROSTER, SECTIONS, COACH_SECTIONS, playerKey, sessionKey, decodeEval, getEvalColor, isCoachCourse } from '../lib/constants';
@@ -51,6 +51,13 @@ export default function Players() {
     const myD = (sessionData.players[playerKey(p)]?.evaluators || {})[profile?.name] || {};
     return Object.values(myD.scores || {}).filter(v => parseInt(v) > 0).length > 0;
   }).length;
+
+  async function deletePlayer(pk, name) {
+    if (!window.confirm(`Delete ${name}? This will permanently remove all their scores, comments, and photos for this course. This cannot be undone.`)) return;
+    await remove(ref(db, sessionKey(course) + '/players/' + pk));
+    window.showToast?.('Player deleted');
+    sync();
+  }
 
   async function handlePhoto(file, pk) {
     if (!file) return;
@@ -138,6 +145,10 @@ export default function Players() {
                 <label style={{ fontSize: 11, padding: '5px 12px', borderRadius: 6, border: '1.5px solid var(--border)', color: 'var(--muted)', background: 'none', cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', textAlign: 'center' }}>
                   📷<input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handlePhoto(e.target.files[0], pk)} />
                 </label>
+                {profile?.role === 'admin' && (
+                  <button style={{ fontSize: 11, padding: '5px 12px', borderRadius: 6, border: '1.5px solid #ef4444', color: '#ef4444', background: 'none', cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}
+                    onClick={() => deletePlayer(pk, p.first + ' ' + p.last)}>🗑</button>
+                )}
               </div>
             </div>
           );
