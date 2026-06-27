@@ -415,6 +415,11 @@ export default function Report() {
           dir="ltr"
           ref={overallRef}
           onInput={e => handleOverall(e.currentTarget.innerText)}
+          onPaste={e => {
+            e.preventDefault();
+            const text = e.clipboardData.getData('text/plain');
+            document.execCommand('insertText', false, text);
+          }}
           style={{ minHeight: 80, height: 'auto', overflow: 'visible', background: '#0a1a0a', border: '1.5px solid #166534', borderRadius: 8, padding: '12px 14px', fontSize: 15, lineHeight: 1.7, color: 'var(--white)', outline: 'none', whiteSpace: 'pre-wrap', wordWrap: 'break-word', unicodeBidi: 'plaintext', textAlign: 'left' }}>
         </div>
         <button
