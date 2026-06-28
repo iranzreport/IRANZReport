@@ -252,7 +252,7 @@ export default function Report() {
         let idealCut = pageStart + pageHpx;
         let safeCut = idealCut;
         // search backward up to 40% of a page height for a safe gap
-        const maxSearch = pageHpx * 0.6;
+        const maxSearch = pageHpx * 0.25;
         let found = false;
         for (let y = idealCut; y > idealCut - maxSearch && y > pageStart; y -= 2) {
           if (!isInsideAnyElement(y)) { safeCut = y; found = true; break; }
