@@ -288,7 +288,7 @@ export default function Report() {
         pdf.setFillColor(0, 0, 0);
         pdf.rect(0, 0, a4W, a4H, 'F');
         pdf.saveGraphicsState();
-        pdf.rect(0, 0, a4W, a4H, 'S');
+        pdf.rect(0, 0, a4W, a4H - bottomMarginMm, 'S');
         pdf.internal.write('W n');
         pdf.addImage(imgData, 'JPEG', 0, -offsetMm, a4W, totalHmm, '', 'FAST');
         pdf.restoreGraphicsState();
