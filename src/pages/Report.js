@@ -426,6 +426,16 @@ export default function Report() {
             <div style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: 1, textTransform: 'uppercase' }}>Maximise Your Potential</div>
           </div>
         </div>
+        {ens.map((n, i) => {
+          const oc = evaluators[n]?.overallComment;
+          if (!oc?.trim()) return null;
+          return (
+            <div key={n} style={{ background: '#0a1628', borderLeft: '3px solid var(--green)', borderRadius: '0 8px 8px 0', padding: '12px 14px', marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4, color: getEvalColor(n, i) }}>◎ {n}</div>
+              <div style={{ fontSize: 13, color: '#cbd5e1', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{oc}</div>
+            </div>
+          );
+        })}
         <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600 }}>Additional Coaching Notes</div>
         <div contentEditable suppressContentEditableWarning
           dir="ltr"
