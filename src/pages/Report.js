@@ -197,7 +197,7 @@ export default function Report() {
       // Collect boundaries from top-level cards AND from likely-deep break points
       // (anything with a top margin/border that visually reads as its own block:
       // comment boxes, individual metric rows, gallery items, etc).
-      const breakSelector = '#report-content > *, #report-content > * > div';
+      const breakSelector = '#report-content > *, #report-content > * > div, #report-content > * > div > div';
       const candidateEls = Array.from(rpt.querySelectorAll(breakSelector));
       const cardBoundaries = candidateEls.map(el => {
         const r = el.getBoundingClientRect();
