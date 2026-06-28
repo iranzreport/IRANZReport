@@ -277,21 +277,28 @@ export default function Report() {
       }
       cuts.push(canvas.height);
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.92);
       for (let i = 0; i < cuts.length - 1; i++) {
-        const sliceTopPx = cuts[i];
-        const sliceBottomPx = cuts[i + 1];
-        const sliceHmm = ((sliceBottomPx - sliceTopPx) * a4W) / canvas.width;
-        const offsetMm = (sliceTopPx * a4W) / canvas.width;
+        const sliceTopPx = Math.round(cuts[i]);
+        const sliceBottomPx = Math.round(cuts[i + 1]);
+        const sliceHeightPx = sliceBottomPx - sliceTopPx;
+        const sliceHmm = (sliceHeightPx * a4W) / canvas.width;
+
+        // Crop just this page's slice into its own canvas, so there is no
+        // image data at all below it - nothing to clip, nothing to leak through.
+        const sliceCanvas = document.createElement('canvas');
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = sliceHeightPx;
+        const sctx = sliceCanvas.getContext('2d');
+        sctx.fillStyle = '#000000';
+        sctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+        sctx.drawImage(canvas, 0, sliceTopPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+        const sliceImgData = sliceCanvas.toDataURL('image/jpeg', 0.92);
 
         if (i > 0) pdf.addPage();
         pdf.setFillColor(0, 0, 0);
         pdf.rect(0, 0, a4W, a4H, 'F');
-        pdf.saveGraphicsState();
-        pdf.rect(0, 0, a4W, a4H - bottomMarginMm, 'S');
-        pdf.internal.write('W n');
-        pdf.addImage(imgData, 'JPEG', 0, -offsetMm, a4W, totalHmm, '', 'FAST');
-        pdf.restoreGraphicsState();
+        pdf.rect(0, 0, a4W, a4H, 'S');
+        pdf.addImage(sliceImgData, 'JPEG', 0, 0, a4W, sliceHmm, '', 'FAST');
       }
       pdf.save(`${p.first || 'player'}_${p.last || ''}_report.pdf`.replace(/\s+/g, '_'));
       window.showToast?.('PDF Downloaded!');
