@@ -197,7 +197,9 @@ export default function Report() {
       // Collect boundaries from top-level cards AND from likely-deep break points
       // (anything with a top margin/border that visually reads as its own block:
       // comment boxes, individual metric rows, gallery items, etc).
-      const breakSelector = '#report-content > *, #report-content > * > div, #report-content > * > div > div';
+      // Select every descendant at any nesting depth, so comment boxes nested
+      // arbitrarily deep inside a section card are always seen as break candidates.
+      const breakSelector = '#report-content *';
       const candidateEls = Array.from(rpt.querySelectorAll(breakSelector));
       const cardBoundaries = candidateEls.map(el => {
         const r = el.getBoundingClientRect();
@@ -249,7 +251,7 @@ export default function Report() {
         let idealCut = pageStart + pageHpx;
         let safeCut = idealCut;
         // search backward up to 40% of a page height for a safe gap
-        const maxSearch = pageHpx * 0.4;
+        const maxSearch = pageHpx * 0.6;
         let found = false;
         for (let y = idealCut; y > idealCut - maxSearch && y > pageStart; y -= 2) {
           if (!isInsideAnyElement(y)) { safeCut = y; found = true; break; }
