@@ -254,7 +254,18 @@ export default function Report() {
         for (let y = idealCut; y > idealCut - maxSearch && y > pageStart; y -= 2) {
           if (!isInsideAnyElement(y)) { safeCut = y; found = true; break; }
         }
-        if (!found) safeCut = idealCut; // fallback: no safe gap found, cut anyway
+        if (!found) {
+          // No safe gap found - find the element that contains idealCut and
+          // push the cut to ITS top edge instead, so we never slice through it.
+          let containingTop = null;
+          for (let i = 0; i < boundariesPx.length; i++) {
+            const b = boundariesPx[i];
+            if (idealCut > b.top + 1 && idealCut < b.bottom - 1) {
+              if (containingTop === null || b.top > containingTop) containingTop = b.top;
+            }
+          }
+          safeCut = (containingTop !== null && containingTop > pageStart) ? containingTop : idealCut;
+        }
         cuts.push(safeCut);
         pageStart = safeCut;
       }
