@@ -227,7 +227,8 @@ export default function Report() {
       const cssToPx = canvas.width / 1000; // capture width was forced to 1000 css px
       const pxPerMm = canvas.width / a4W;
       const bottomMarginMm = 4; // breathing room at the bottom of each page
-      const pageHpx = (a4H - bottomMarginMm) * pxPerMm;
+      const topMarginMm = 2; // breathing room at the top of each page
+      const pageHpx = (a4H - bottomMarginMm - topMarginMm) * pxPerMm;
 
       // Convert card boundaries (css px) into canvas px
       const boundariesPx = cardBoundaries.map(b => ({
@@ -298,7 +299,7 @@ export default function Report() {
         pdf.setFillColor(0, 0, 0);
         pdf.rect(0, 0, a4W, a4H, 'F');
         pdf.rect(0, 0, a4W, a4H, 'S');
-        pdf.addImage(sliceImgData, 'JPEG', 0, 0, a4W, sliceHmm, '', 'FAST');
+        pdf.addImage(sliceImgData, 'JPEG', 0, topMarginMm, a4W, sliceHmm, '', 'FAST');
       }
       pdf.save(`${p.first || 'player'}_${p.last || ''}_report.pdf`.replace(/\s+/g, '_'));
       window.showToast?.('PDF Downloaded!');
