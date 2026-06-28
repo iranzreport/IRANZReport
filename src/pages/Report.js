@@ -204,7 +204,7 @@ export default function Report() {
       const cardBoundaries = candidateEls.map(el => {
         const r = el.getBoundingClientRect();
         return { top: r.top - rptTop, bottom: r.bottom - rptTop, height: r.height };
-      }).filter(b => b.height > 4 && b.height < 2000) // ignore zero-height/huge wrapper artifacts
+      }).filter(b => b.height > 30 && b.height < 1200) // ignore tiny bars/labels and huge wrapper artifacts
         .sort((a, b) => a.top - b.top);
 
       const canvas = await html2canvas(rpt, {
@@ -268,6 +268,9 @@ export default function Report() {
           }
           safeCut = (containingTop !== null && containingTop > pageStart) ? containingTop : idealCut;
         }
+        // Safety net: never let a cut land at/before the current page start —
+        // that would produce a near-zero-height page and duplicate content.
+        if (safeCut <= pageStart + 5) safeCut = idealCut;
         cuts.push(safeCut);
         pageStart = safeCut;
       }
