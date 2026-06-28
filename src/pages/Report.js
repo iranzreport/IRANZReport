@@ -226,7 +226,7 @@ export default function Report() {
       const totalHmm = (canvas.height * a4W) / canvas.width;
       const cssToPx = canvas.width / 1000; // capture width was forced to 1000 css px
       const pxPerMm = canvas.width / a4W;
-      const bottomMarginMm = 4; // breathing room at the bottom of each page
+      const bottomMarginMm = 2; // breathing room at the bottom of each page
       const pageHpx = (a4H - bottomMarginMm) * pxPerMm;
 
       // Convert card boundaries (css px) into canvas px
