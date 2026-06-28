@@ -227,7 +227,7 @@ export default function Report() {
       const cssToPx = canvas.width / 1000; // capture width was forced to 1000 css px
       const pxPerMm = canvas.width / a4W;
       const bottomMarginMm = 4; // breathing room at the bottom of each page
-      const topMarginMm = 4; // breathing room at the top of each page
+      const topMarginMm = 6; // breathing room at the top of each page
       const pageHpx = (a4H - bottomMarginMm - topMarginMm) * pxPerMm;
 
       // Convert card boundaries (css px) into canvas px
@@ -313,7 +313,7 @@ export default function Report() {
     <div id="report-content" style={{ background: '#000' }}>
       {/* Logo header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 16, marginBottom: 20, borderBottom: '2px solid var(--green)' }}>
-        <img src={logo} alt="IRANZ" style={{ height: 88, width: 'auto' }} />
+        <img src={logo} alt="IRANZ" style={{ height: 110, width: 'auto' }} />
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--green)' }}>{course || ""}</div>
           <div style={{ fontSize: 11, color: 'var(--muted)' }}>Player Evaluation Report</div>
