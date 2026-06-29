@@ -1,3 +1,10 @@
+@font-face {
+  font-family: 'BankGothic';
+  src: url('./fonts/BankGothicBT-Medium.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 :root {
   --green: #22c55e;
   --orange: #FD7006;

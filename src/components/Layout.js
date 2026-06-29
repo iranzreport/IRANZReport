@@ -36,8 +36,8 @@ export default function Layout() {
             <span id="syncStatus">Connected</span>
           </div>
           <span style={{ fontSize: 12, color: 'var(--green)', fontWeight: 600 }}>{profile?.name}</span>
-          <button className="btn btn-secondary" style={{ fontSize: 11, padding: '6px 12px' }} onClick={() => { selectCourse(null); navigate('/login'); }}>Change Course</button>
-          <button className="btn btn-secondary" style={{ fontSize: 11, padding: '6px 12px' }} onClick={() => signOut(auth)}>Sign Out</button>
+          <button className="btn btn-secondary" style={{ fontSize: 18, padding: '6px 12px', fontFamily: "'BankGothic', sans-serif" }} onClick={() => { selectCourse(null); navigate('/login'); }}>Change Course</button>
+          <button className="btn btn-secondary" style={{ fontSize: 18, padding: '6px 12px', fontFamily: "'BankGothic', sans-serif" }} onClick={() => signOut(auth)}>Sign Out</button>
         </div>
       </header>
 
@@ -49,8 +49,8 @@ export default function Layout() {
             onClick={() => !tab.disabled && navigate(tab.path)}
             style={{
               padding: '14px 16px',
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: 13,
+              fontFamily: "'BankGothic', sans-serif",
+              fontSize: 20,
               fontWeight: 700,
               letterSpacing: '1.5px',
               textTransform: 'uppercase',
