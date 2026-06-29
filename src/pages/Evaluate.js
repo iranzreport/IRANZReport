@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ref, get, set } from 'firebase/database';
 import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { DEFAULT_ROSTER, COACH_ROSTER, SECTIONS, COACH_SECTIONS, playerKey, sessionKey, encodeEval, decodeEval, getEvalColor, isCoachCourse } from '../lib/constants';
+import { COACH_ROSTER, SECTIONS, COACH_SECTIONS, playerKey, sessionKey, encodeEval, decodeEval, getEvalColor, isCoachCourse, getRosterForCourse } from '../lib/constants';
 
 export default function Evaluate() {
   const { playerKey: pk } = useParams();
@@ -11,7 +11,7 @@ export default function Evaluate() {
   const navigate = useNavigate();
   const isCoach = isCoachCourse(course);
   const activeSections = isCoach ? COACH_SECTIONS : SECTIONS;
-  const activeRoster = isCoach ? COACH_ROSTER : DEFAULT_ROSTER;
+  const activeRoster = isCoach ? COACH_ROSTER : getRosterForCourse(course);
 
   const [sessionData, setSessionData] = useState({ players: {} });
   const [currentSection, setCurrentSection] = useState(0);

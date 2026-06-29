@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ref, get, set, remove } from 'firebase/database';
 import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { DEFAULT_ROSTER, COACH_ROSTER, SECTIONS, COACH_SECTIONS, playerKey, sessionKey, decodeEval, getEvalColor, isCoachCourse } from '../lib/constants';
+import { DEFAULT_ROSTER, COACH_ROSTER, SECTIONS, COACH_SECTIONS, playerKey, sessionKey, decodeEval, getEvalColor, isCoachCourse, getRosterForCourse } from '../lib/constants';
 
 export default function Players() {
   const { profile, course } = useAuth();
@@ -11,7 +11,7 @@ export default function Players() {
   const [sessionData, setSessionData] = useState({ players: {} });
   const [syncing, setSyncing] = useState(false);
   const isCoach = isCoachCourse(course);
-  const activeRoster = isCoach ? COACH_ROSTER : DEFAULT_ROSTER;
+  const activeRoster = isCoach ? COACH_ROSTER : getRosterForCourse(course);
   const activeSections = isCoach ? COACH_SECTIONS : SECTIONS;
 
   const sync = useCallback(async () => {
@@ -92,7 +92,7 @@ export default function Players() {
           { num: activeRoster.filter(p => !sessionData.players[playerKey(p)]?.removed).length, label: isCoach ? 'Coaches' : 'Players' },
           { num: evalSet.size, label: 'Evaluators' },
           { num: myScored, label: "You've Scored" },
-          { num: Math.round(myScored / DEFAULT_ROSTER.length * 100) + '%', label: 'Progress' },
+          { num: Math.round(myScored / activeRoster.length * 100) + '%', label: 'Progress' },
         ].map(({ num, label }) => (
           <div key={label} className="card" style={{ padding: 16 }}>
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 900, color: 'var(--green)' }}>{num}</div>

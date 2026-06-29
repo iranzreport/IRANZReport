@@ -32,7 +32,32 @@ export const IRANZ_USA_ROSTER = [
   { first: 'Masiu', last: 'Aholelei', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: 'Male' },
 ];
 
+export const INTERMEDIATE_PLAYERS_ROSTER = [
+  { first: 'Jarvis', last: 'Baker', weight: '67', height: '159', primaryPos: '2. Hooker', secondaryPos: '7. Openside Flanker', club: '', gender: 'Male' },
+  { first: 'Barnaby', last: 'Smithers', weight: '72', height: '180', primaryPos: '7. Openside Flanker', secondaryPos: '6. Blindside Flanker', club: '', gender: 'Male' },
+  { first: 'Tamati', last: 'Anderton', weight: '52', height: '164', primaryPos: '13. Outside Centre', secondaryPos: '15. Fullback', club: '', gender: 'Male' },
+  { first: 'London', last: 'Puohotaua', weight: '65', height: '178', primaryPos: '10. Fly Half', secondaryPos: '15. Fullback', club: '', gender: 'Male' },
+  { first: 'Hugo', last: 'Eru', weight: '80', height: '175', primaryPos: '8. Number 8', secondaryPos: '4. Lock', club: '', gender: 'Male' },
+  { first: 'Jake', last: 'Eru', weight: '80', height: '175', primaryPos: '4. Lock', secondaryPos: '6. Blindside Flanker', club: '', gender: 'Male' },
+  { first: 'Katelyn', last: 'Saulia-Savelio Rangiwai', weight: '60', height: '156', primaryPos: '7. Openside Flanker', secondaryPos: '13. Outside Centre', club: '', gender: 'Female' },
+  { first: 'Quade', last: 'Walters', weight: '93', height: '163', primaryPos: '2. Hooker', secondaryPos: '6. Blindside Flanker', club: '', gender: 'Male' },
+  { first: 'Rico', last: 'Amner', weight: '60', height: '168', primaryPos: '15. Fullback', secondaryPos: '11. Left Wing', club: '', gender: 'Male' },
+  { first: 'Ethan', last: 'Van Rhyneveld', weight: '50', height: '161', primaryPos: '9. Scrum Half', secondaryPos: '14. Right Wing', club: '', gender: 'Male' },
+  { first: 'Taio', last: 'Ferreira', weight: '50', height: '160', primaryPos: '15. Fullback', secondaryPos: '12. Inside Centre', club: '', gender: 'Male' },
+  { first: 'Roman', last: 'Watkins', weight: '52', height: '164', primaryPos: '10. Fly Half', secondaryPos: '15. Fullback', club: '', gender: 'Male' },
+  { first: 'Finn', last: "O'Sullivan", weight: '86', height: '189', primaryPos: '8. Number 8', secondaryPos: '5. Lock', club: '', gender: 'Male' },
+];
+
 export const DEFAULT_ROSTER = IRANZ_USA_ROSTER;
+
+export const ROSTERS_BY_COURSE = {
+  iranz_usa: IRANZ_USA_ROSTER,
+  intermediate_players: INTERMEDIATE_PLAYERS_ROSTER,
+};
+
+export function getRosterForCourse(courseId) {
+  return ROSTERS_BY_COURSE[courseId] || DEFAULT_ROSTER;
+}
 
 export const COACH_ROSTER = [
   { first: 'Daniel', last: 'Tamehana', primaryPos: 'Advanced Coaches', club: '' },
