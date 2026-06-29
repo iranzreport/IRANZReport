@@ -50,9 +50,16 @@ export const INTERMEDIATE_PLAYERS_ROSTER = [
 
 export const DEFAULT_ROSTER = IRANZ_USA_ROSTER;
 
+export const ADVANCED_PLAYERS_ROSTER = [
+  { first: 'Cooper', last: 'Charteris', weight: '69', height: '177', primaryPos: '9. Scrum Half', secondaryPos: '9. Scrum Half', club: '', gender: 'Male' },
+  { first: 'Max', last: 'Woo', weight: '60', height: '170', primaryPos: '9. Scrum Half', secondaryPos: '15. Fullback', club: '', gender: 'Male' },
+  { first: 'Sean', last: 'Tanner', weight: '82', height: '178', primaryPos: '9. Scrum Half', secondaryPos: '10. Fly Half', club: '', gender: 'Male' },
+];
+
 export const ROSTERS_BY_COURSE = {
   iranz_usa: IRANZ_USA_ROSTER,
   intermediate_players: INTERMEDIATE_PLAYERS_ROSTER,
+  advanced_players: ADVANCED_PLAYERS_ROSTER,
 };
 
 export function getRosterForCourse(courseId) {
