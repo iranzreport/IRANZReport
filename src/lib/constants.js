@@ -67,9 +67,9 @@ export function getRosterForCourse(courseId) {
 }
 
 export const COACH_ROSTER = [
-  { first: 'Daniel', last: 'Tamehana', primaryPos: 'Advanced Coaches', club: '' },
-  { first: 'Andrew', last: 'Bell', primaryPos: 'Advanced Coaches', club: '' },
-  { first: 'Bas', last: 'van der Geest', primaryPos: 'Advanced Coaches', club: '' },
+  { first: 'Ryan', last: 'Jansen van Vuuren', primaryPos: 'Advanced Coaches', club: '' },
+  { first: 'David', last: 'Martin', primaryPos: 'Advanced Coaches', club: '' },
+  { first: 'Andrew', last: 'Blewman', primaryPos: 'Advanced Coaches', club: '' },
 ];
 
 export const SECTIONS = [
