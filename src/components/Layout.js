@@ -36,8 +36,8 @@ export default function Layout() {
             <span id="syncStatus">Connected</span>
           </div>
           <span style={{ fontSize: 12, color: 'var(--green)', fontWeight: 600 }}>{profile?.name}</span>
-          <button className="btn btn-secondary" style={{ fontSize: 18, padding: '6px 12px', fontFamily: "'BankGothic', sans-serif" }} onClick={() => { selectCourse(null); navigate('/login'); }}>Change Course</button>
-          <button className="btn btn-secondary" style={{ fontSize: 18, padding: '6px 12px', fontFamily: "'BankGothic', sans-serif" }} onClick={() => signOut(auth)}>Sign Out</button>
+          <button className="btn btn-secondary" style={{ fontSize: 14, padding: '6px 12px', fontFamily: "'BankGothic', sans-serif", color: 'var(--orange)', borderColor: 'var(--orange)' }} onClick={() => { selectCourse(null); navigate('/login'); }}>Change Course</button>
+          <button className="btn btn-secondary" style={{ fontSize: 14, padding: '6px 12px', fontFamily: "'BankGothic', sans-serif", color: 'var(--orange)', borderColor: 'var(--orange)' }} onClick={() => signOut(auth)}>Sign Out</button>
         </div>
       </header>
 
