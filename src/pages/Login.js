@@ -14,7 +14,7 @@ export default function Login() {
   const [loading, setLoading]   = useState(false);
   const [step, setStep]         = useState('login');
 
-  if (user && course) return <Navigate to="/" />;
+  if (user && course && step === 'course') return <Navigate to="/" />;
 
   if (user && step === 'login') {
     setStep('course');
@@ -25,6 +25,7 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
+      localStorage.removeItem('iranz_course');
       await signInWithEmailAndPassword(auth, email, password);
       setStep('course');
     } catch (err) {
