@@ -241,7 +241,7 @@ export default function Evaluate() {
        sec.type === 'playbook' ? renderPlaybookSection() : (
         <>
           {sec.metrics.map(m => {
-            const key = sec.id + '_' + m;
+            const key = (sec.id + '_' + m).replace(/[.#$/[\]]/g, '_');
             const raw = evData.scores?.[key];
             const score = (raw != null && parseInt(raw) > 0) ? parseInt(raw) : null;
             const numericVal = evData.scores?.[key] || '';
