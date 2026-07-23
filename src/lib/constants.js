@@ -1,7 +1,8 @@
 export const EVAL_COLORS = {
   'Colin Cooper': '#22c55e', 'Dave Ellis': '#38bdf8', 'Dominic Bird': '#f59e0b',
   'Harry Godfrey': '#a78bfa', 'Mark Hammett': '#fb923c', 'Nehe Milner-Skudder': '#f472b6',
-  'Wayne Taylor': '#e879f9', 'Mat Luamanu': '#34d399'
+  'Wayne Taylor': '#e879f9', 'Mat Luamanu': '#34d399',
+  'Ryan Jansen van Vuuren': '#60a5fa', 'David Martin': '#c084fc', 'Andrew Blewman': '#fbbf24'
 };
 
 export const IRANZ_USA_ROSTER = [
