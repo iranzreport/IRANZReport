@@ -64,8 +64,7 @@ export default function Evaluate() {
   }
 
   function handleScore(key, n) {
-    console.log('handleScore called - viewingEval:', viewingEval, 'profile.name:', profile?.name, 'match:', viewingEval === profile?.name);
-    if (viewingEval !== profile?.name) return;
+    if (!profile?.name) return;
     const myD = getMyData();
     const cur = parseInt(myD.scores?.[key]) || 0;
     const newVal = cur === n ? 0 : n;
@@ -77,7 +76,7 @@ export default function Evaluate() {
   }
 
   function handleComment(secId, val) {
-    if (viewingEval !== profile?.name) return;
+    if (!profile?.name) return;
     const myD = getMyData();
     const newData = { ...myD, comments: { ...(myD.comments || {}), [secId]: val } };
     setSessionData(prev => ({
