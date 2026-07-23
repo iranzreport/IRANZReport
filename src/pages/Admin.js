@@ -3,11 +3,23 @@ import { EVAL_COLORS, sessionKey, getRosterForCourse, playerKey, isCoachCourse, 
 import { useAuth } from '../contexts/AuthContext';
 import { ref, get, set } from 'firebase/database';
 import { db } from '../lib/firebase';
+import { useNavigate } from 'react-router-dom';
 
 export default function Admin() {
   const { course } = useAuth();
+  const navigate = useNavigate();
   const [uploadingBulk, setUploadingBulk] = useState(false);
   const [bulkStatus, setBulkStatus] = useState('');
+
+  function downloadAllReports() {
+    const isCoach = isCoachCourse(course);
+    const roster = isCoach ? COACH_ROSTER : getRosterForCourse(course);
+    if (roster.length === 0) return;
+    const queue = roster.map(p => playerKey(p));
+    sessionStorage.setItem('pdfQueue', JSON.stringify(queue));
+    sessionStorage.setItem('pdfQueueIndex', '0');
+    navigate('/report/' + queue[0] + '?auto=1');
+  }
 
   async function handleBulkGalleryUpload(files) {
     if (!files || files.length === 0) return;
@@ -80,6 +92,14 @@ export default function Admin() {
           <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => handleBulkGalleryUpload(e.target.files)} disabled={uploadingBulk} />
         </label>
         {bulkStatus && <div style={{ marginTop: 12, fontSize: 13, color: 'var(--green)' }}>{bulkStatus}</div>}
+      </div>
+
+      <div className="card">
+        <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>Download All Reports</div>
+        <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 12 }}>Automatically download a PDF report for every player in the current course one by one. The screen will cycle through each report — this may take 2-3 minutes.</div>
+        <button className="btn btn-primary" style={{ width: '100%' }} onClick={downloadAllReports}>
+          ⬇ Download All Reports
+        </button>
       </div>
 
       <div className="card">

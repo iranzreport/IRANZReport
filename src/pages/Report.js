@@ -65,6 +65,28 @@ export default function Report() {
     load();
   }, [pk, profile]);
 
+  useEffect(() => {
+    if (autoDownload && !loading && !generatingPDF) {
+      const timer = setTimeout(() => {
+        downloadPDF().then(() => {
+          // Move to next player in queue
+          const queue = JSON.parse(sessionStorage.getItem('pdfQueue') || '[]');
+          const idx = parseInt(sessionStorage.getItem('pdfQueueIndex') || '0');
+          const nextIdx = idx + 1;
+          if (nextIdx < queue.length) {
+            sessionStorage.setItem('pdfQueueIndex', String(nextIdx));
+            navigate('/report/' + queue[nextIdx] + '?auto=1');
+          } else {
+            sessionStorage.removeItem('pdfQueue');
+            sessionStorage.removeItem('pdfQueueIndex');
+            navigate('/admin');
+          }
+        });
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [autoDownload, loading]);
+
   function handleOverall(val) {
     setOverall(val);
     setOverallDirty(true);
