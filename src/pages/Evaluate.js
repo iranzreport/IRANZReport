@@ -96,7 +96,7 @@ export default function Evaluate() {
   const evNames = Object.keys(pd.evaluators || {});
   if (!evNames.includes(profile?.name)) evNames.unshift(profile?.name);
   const sec = activeSections[currentSection];
-  const isMe = viewingEval === profile?.name;
+  const isMe = !viewingEval || viewingEval === profile?.name;
   const evData = isMe ? getMyData() : getViewData();
   const myD = getMyData();
 
