@@ -403,7 +403,7 @@ export default function Report() {
               {secAvg && <span style={{ fontSize: 20, color: scoreColor(secAvg) }}>{secAvg}</span>}
             </div>
             {sec.metrics.map(m => {
-              const key = sec.id + '_' + m;
+              const key = (sec.id + '_' + m).replace(/[.#$/[\]]/g, '_');
               const hasAny = ens.some(n => { const v = (evaluators[n]?.scores || {})[key]; return v != null && parseInt(v) > 0; });
               if (!hasAny) return null;
               const a = avg(key);
