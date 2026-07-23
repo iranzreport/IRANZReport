@@ -219,6 +219,24 @@ export default function Evaluate() {
             const key = sec.id + '_' + m;
             const raw = evData.scores?.[key];
             const score = (raw != null && parseInt(raw) > 0) ? parseInt(raw) : null;
+            const numericVal = evData.scores?.[key] || '';
+
+            if (sec.type === 'numeric') {
+              return (
+                <div key={m} style={{ background: '#000', border: '1px solid #222', borderRadius: 10, padding: 16, marginBottom: 10 }}>
+                  <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 10 }}>{m}</div>
+                  <input
+                    type="text"
+                    disabled={!isMe}
+                    value={isMe ? (myD.scores?.[key] || '') : numericVal}
+                    onChange={e => handleScore(key, e.target.value)}
+                    placeholder="Enter result (e.g. 4:23 or 1.52)"
+                    style={{ width: '100%', background: '#111', border: '1.5px solid #333', borderRadius: 8, padding: '10px 14px', fontSize: 16, color: '#fff', fontFamily: "'Inter', sans-serif", outline: 'none', opacity: !isMe ? 0.6 : 1, boxSizing: 'border-box' }}
+                  />
+                </div>
+              );
+            }
+
             return (
               <div key={m} style={{ background: '#000', border: '1px solid #222', borderRadius: 10, padding: 16, marginBottom: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
