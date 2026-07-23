@@ -87,6 +87,7 @@ export const SECTIONS = [
   { id: 'pos_props', label: 'Position — Props', metrics: ['Scrum', 'Lineout', 'Carry', 'Defence'] },
   { id: 'hc_notes', label: 'Head Coach Notes', metrics: ['Overall Assessment', 'Key Strengths', 'Development Areas'] },
   { id: 'fitness', label: 'Fitness & Physical', type: 'numeric', metrics: ['Bronco Time', '10m Sprint', '30m Sprint'] },
+  { id: 'gym_testing', label: 'Gym Testing', type: 'gym', metrics: ['Bench Press', 'Pull Up', 'Squat'] },
 ];
 
 export const COACH_SECTIONS = [

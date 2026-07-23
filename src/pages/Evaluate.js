@@ -211,6 +211,20 @@ export default function Evaluate() {
 
       <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 2, marginBottom: 16 }}>{sec.label}</div>
 
+      {sec.type === 'gym' && (
+        <div style={{ background: '#000', border: '1px solid var(--green)', borderRadius: 10, padding: 16, marginBottom: 16 }}>
+          <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 10 }}>Body Weight</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <input type="text" disabled={!isMe}
+              value={isMe ? (myD.scores?.['gym_testing_body_weight'] || '') : (evData.scores?.['gym_testing_body_weight'] || '')}
+              onChange={e => handleScore('gym_testing_body_weight', e.target.value)}
+              placeholder="e.g. 85"
+              style={{ flex: 1, background: '#111', border: '1.5px solid #333', borderRadius: 8, padding: '10px 14px', fontSize: 16, color: '#fff', fontFamily: "'Inter', sans-serif", outline: 'none', opacity: !isMe ? 0.6 : 1 }} />
+            <div style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 600 }}>kg</div>
+          </div>
+        </div>
+      )}
+
       {/* Section content */}
       {sec.type === 'notes' ? renderNotesSection() :
        sec.type === 'playbook' ? renderPlaybookSection() : (
@@ -233,6 +247,34 @@ export default function Evaluate() {
                     placeholder="Enter result (e.g. 4:23 or 1.52)"
                     style={{ width: '100%', background: '#111', border: '1.5px solid #333', borderRadius: 8, padding: '10px 14px', fontSize: 16, color: '#fff', fontFamily: "'Inter', sans-serif", outline: 'none', opacity: !isMe ? 0.6 : 1, boxSizing: 'border-box' }}
                   />
+                </div>
+              );
+            }
+
+            if (sec.type === 'gym') {
+              const kgKey = key + '_kg';
+              const repsKey = key + '_reps';
+              return (
+                <div key={m} style={{ background: '#000', border: '1px solid #222', borderRadius: 10, padding: 16, marginBottom: 10 }}>
+                  <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>{m}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Kg</div>
+                      <input type="text" disabled={!isMe}
+                        value={isMe ? (myD.scores?.[kgKey] || '') : (evData.scores?.[kgKey] || '')}
+                        onChange={e => handleScore(kgKey, e.target.value)}
+                        placeholder="e.g. 80"
+                        style={{ width: '100%', background: '#111', border: '1.5px solid #333', borderRadius: 8, padding: '10px 14px', fontSize: 16, color: '#fff', fontFamily: "'Inter', sans-serif", outline: 'none', opacity: !isMe ? 0.6 : 1, boxSizing: 'border-box' }} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Reps</div>
+                      <input type="text" disabled={!isMe}
+                        value={isMe ? (myD.scores?.[repsKey] || '') : (evData.scores?.[repsKey] || '')}
+                        onChange={e => handleScore(repsKey, e.target.value)}
+                        placeholder="e.g. 10"
+                        style={{ width: '100%', background: '#111', border: '1.5px solid #333', borderRadius: 8, padding: '10px 14px', fontSize: 16, color: '#fff', fontFamily: "'Inter', sans-serif", outline: 'none', opacity: !isMe ? 0.6 : 1, boxSizing: 'border-box' }} />
+                    </div>
+                  </div>
                 </div>
               );
             }
