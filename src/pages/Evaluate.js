@@ -55,12 +55,18 @@ export default function Evaluate() {
   async function schedulePush(newData) {
     setSaved(false);
     clearTimeout(pushTimer);
-    // Save immediately to Firebase
+    const savePath = sessionKey(course) + '/players/' + pk + '/evaluators/' + encodeEval(profile.name);
+    console.log('ATTEMPTING SAVE to path:', savePath);
+    console.log('Data being saved:', JSON.stringify(newData).slice(0, 200));
     try {
-      await set(ref(db, sessionKey(course) + '/players/' + pk + '/evaluators/' + encodeEval(profile.name)), newData);
+      await set(ref(db, savePath), newData);
+      console.log('SAVE SUCCESS');
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    } catch(e) { console.error('Save failed:', e); }
+    } catch(e) { 
+      console.error('SAVE FAILED:', e.message, e.code);
+      window.alert('Save failed: ' + e.message);
+    }
   }
 
   function handleScore(key, n) {
