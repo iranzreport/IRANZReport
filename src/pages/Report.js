@@ -25,7 +25,9 @@ export default function Report() {
   const [gallery, setGallery] = useState([]);
   const [uploadingImg, setUploadingImg] = useState(false);
 
-  const p = (isCoachCourse(course) ? COACH_ROSTER : getRosterForCourse(course)).find(r => playerKey(r) === pk) || {};
+  const isCoach = isCoachCourse(course);
+  const activeSections = isCoach ? COACH_SECTIONS : SECTIONS;
+  const p = (isCoach ? COACH_ROSTER : getRosterForCourse(course)).find(r => playerKey(r) === pk) || {};
   const ini = (p.first?.[0] || '') + (p.last?.[0] || '');
 
   useEffect(() => {
@@ -113,11 +115,11 @@ export default function Report() {
   }
 
   let allVals = [];
-  SECTIONS.filter(s => s.id !== 'fitness').forEach(sec => sec.metrics.forEach(m => { const a = avg(sec.id + '_' + m); if (a) allVals.push(parseFloat(a)); }));
+  activeSections.filter(s => s.id !== 'fitness' && s.type !== 'notes' && s.type !== 'playbook' && s.type !== 'gym').forEach(sec => sec.metrics.forEach(m => { const a = avg((sec.id + '_' + m).replace(/[.#$/[\]]/g, '_')); if (a) allVals.push(parseFloat(a)); }));
   const overallAvg = allVals.length ? (allVals.reduce((a, b) => a + b, 0) / allVals.length).toFixed(1) : null;
 
   let workOns = [];
-  SECTIONS.filter(s => s.id !== 'fitness').forEach(sec => sec.metrics.forEach(m => {
+  activeSections.filter(s => s.id !== 'fitness' && s.type !== 'notes' && s.type !== 'playbook' && s.type !== 'gym').forEach(sec => sec.metrics.forEach(m => {
     const a = parseFloat(avg(sec.id + '_' + m));
     if (!isNaN(a) && a > 0 && a < 3) workOns.push({ m, sec: sec.label, a });
   }));
@@ -389,7 +391,7 @@ export default function Report() {
       )}
 
       {/* Sections */}
-      {SECTIONS.map(sec => {
+      {activeSections.map(sec => {
         const hasScore = sec.metrics.some(m => ens.some(n => { const v = (evaluators[n]?.scores || {})[(sec.id + '_' + m).replace(/[.#$/[\]]/g, '_')]; return v != null && parseInt(v) > 0; }));
         const hasComment = ens.some(n => { const c = (evaluators[n]?.comments || {})[sec.id]; return c && c.trim().length > 0; });
         if (!hasScore && !hasComment) return null;
