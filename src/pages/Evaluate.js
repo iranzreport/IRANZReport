@@ -55,18 +55,11 @@ export default function Evaluate() {
   async function schedulePush(newData) {
     setSaved(false);
     clearTimeout(pushTimer);
-    const savePath = sessionKey(course) + '/players/' + pk + '/evaluators/' + encodeEval(profile.name);
-    console.log('ATTEMPTING SAVE to path:', savePath);
-    console.log('Data being saved:', JSON.stringify(newData).slice(0, 200));
     try {
-      await set(ref(db, savePath), newData);
-      console.log('SAVE SUCCESS');
+      await set(ref(db, sessionKey(course) + '/players/' + pk + '/evaluators/' + encodeEval(profile.name)), newData);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    } catch(e) { 
-      console.error('SAVE FAILED:', e.message, e.code);
-      window.alert('Save failed: ' + e.message);
-    }
+    } catch(e) { console.error('Save failed:', e); }
   }
 
   function handleScore(key, n) {
