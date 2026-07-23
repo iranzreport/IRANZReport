@@ -254,9 +254,17 @@ export default function Evaluate() {
             if (sec.type === 'gym') {
               const kgKey = key + '_kg';
               const repsKey = key + '_reps';
+              const kgVal = parseFloat(isMe ? (myD.scores?.[kgKey] || '') : (evData.scores?.[kgKey] || ''));
+              const repsVal = parseFloat(isMe ? (myD.scores?.[repsKey] || '') : (evData.scores?.[repsKey] || ''));
+              const oneRM = (!isNaN(kgVal) && !isNaN(repsVal) && repsVal > 0)
+                ? Math.round(kgVal * (1 + repsVal / 30))
+                : null;
               return (
                 <div key={m} style={{ background: '#000', border: '1px solid #222', borderRadius: 10, padding: 16, marginBottom: 10 }}>
-                  <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>{m}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <div style={{ fontSize: 15, fontWeight: 600 }}>{m}</div>
+                    {oneRM && <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--green)', fontWeight: 700 }}>1RM: {oneRM}kg</div>}
+                  </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                     <div>
                       <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Kg</div>
