@@ -64,6 +64,7 @@ export default function Evaluate() {
   }
 
   function handleScore(key, n) {
+    console.log('handleScore called - viewingEval:', viewingEval, 'profile.name:', profile?.name, 'match:', viewingEval === profile?.name);
     if (viewingEval !== profile?.name) return;
     const myD = getMyData();
     const cur = parseInt(myD.scores?.[key]) || 0;
