@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ref, get, set } from 'firebase/database';
 import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,6 +8,8 @@ const logo = "data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJ
 
 export default function Report() {
   const { playerKey: pk } = useParams();
+  const [searchParams] = useSearchParams();
+  const autoDownload = searchParams.get('auto') === '1';
   const { profile, course } = useAuth();
   const navigate = useNavigate();
   const [evaluators, setEvaluators] = useState({});
