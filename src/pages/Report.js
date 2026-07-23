@@ -390,11 +390,11 @@ export default function Report() {
 
       {/* Sections */}
       {SECTIONS.map(sec => {
-        const hasScore = sec.metrics.some(m => ens.some(n => { const v = (evaluators[n]?.scores || {})[sec.id + '_' + m]; return v != null && parseInt(v) > 0; }));
+        const hasScore = sec.metrics.some(m => ens.some(n => { const v = (evaluators[n]?.scores || {})[(sec.id + '_' + m).replace(/[.#$/[\]]/g, '_')]; return v != null && parseInt(v) > 0; }));
         const hasComment = ens.some(n => { const c = (evaluators[n]?.comments || {})[sec.id]; return c && c.trim().length > 0; });
         if (!hasScore && !hasComment) return null;
         let secVals = [];
-        sec.metrics.forEach(m => { const a = avg(sec.id + '_' + m); if (a) secVals.push(parseFloat(a)); });
+        sec.metrics.forEach(m => { const a = avg((sec.id + '_' + m).replace(/[.#$/[\]]/g, '_')); if (a) secVals.push(parseFloat(a)); });
         const secAvg = secVals.length ? (secVals.reduce((a, b) => a + b, 0) / secVals.length).toFixed(1) : null;
         return (
           <div key={sec.id} style={{ background: '#000', border: '1.5px solid #222', borderRadius: 12, padding: 20, marginBottom: 16 }}>
