@@ -131,7 +131,7 @@ export function sessionKey(courseId) {
 }
 
 export function encodeEval(name) {
-  return name.replace(/[.#$/[]\s]/g, '_');
+  return name.replace(/[.#$/[]]/g, '_');
 }
 
 export function decodeEval(encoded) {
