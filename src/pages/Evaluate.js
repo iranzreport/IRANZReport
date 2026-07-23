@@ -52,15 +52,15 @@ export default function Evaluate() {
     return (sessionData.players[pk]?.evaluators || {})[viewingEval] || { scores: {}, comments: {}, overallComment: '' };
   }
 
-  function schedulePush(newData) {
+  async function schedulePush(newData) {
     setSaved(false);
     clearTimeout(pushTimer);
-    const timer = setTimeout(async () => {
+    // Save immediately to Firebase
+    try {
       await set(ref(db, sessionKey(course) + '/players/' + pk + '/evaluators/' + encodeEval(profile.name)), newData);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    }, 1000);
-    setPushTimer(timer);
+    } catch(e) { console.error('Save failed:', e); }
   }
 
   function handleScore(key, n) {
