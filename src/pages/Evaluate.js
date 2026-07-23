@@ -33,11 +33,16 @@ export default function Evaluate() {
     } catch (e) { console.error(e); }
   }, [pk, course]);
 
+  // Load data only when player or course changes, not on every render
   useEffect(() => {
     loadData();
-    setViewingEval(profile?.name);
     setCurrentSection(0);
-  }, [pk, profile, loadData]);
+  }, [pk, course]);
+
+  // Update viewingEval when profile loads (separate from data loading)
+  useEffect(() => {
+    if (profile?.name) setViewingEval(profile.name);
+  }, [profile?.name]);
 
   function getMyData() {
     return (sessionData.players[pk]?.evaluators || {})[profile?.name] || { scores: {}, comments: {}, overallComment: '' };
