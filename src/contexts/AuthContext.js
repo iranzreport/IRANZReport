@@ -12,7 +12,7 @@ export const COURSES = [
   { id: 'advanced_coaches',     label: 'Advanced Coaches Course' },
   { id: 'iranz_usa',            label: 'IRANZ USA' },
   { id: 'iranz_uk',             label: 'IRANZ UK' },
-  { id: 'nzpa',                  label: 'New Zealand Performance Academy (NZPA)' },
+  { id: 'nzpa',                  label: 'New Zealand Performance Academy (NZPAA)' },
 ];
 
 export function AuthProvider({ children }) {
