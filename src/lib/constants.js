@@ -57,10 +57,13 @@ export const ADVANCED_PLAYERS_ROSTER = [
   { first: 'Sean', last: 'Tanner', weight: '82', height: '178', primaryPos: '9. Scrum Half', secondaryPos: '10. Fly Half', club: '', gender: 'Male' },
 ];
 
+export const NZPA_ROSTER = [];
+
 export const ROSTERS_BY_COURSE = {
   iranz_usa: IRANZ_USA_ROSTER,
   intermediate_players: INTERMEDIATE_PLAYERS_ROSTER,
   advanced_players: ADVANCED_PLAYERS_ROSTER,
+  nzpa: NZPA_ROSTER,
 };
 
 export function getRosterForCourse(courseId) {
