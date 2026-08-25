@@ -57,7 +57,26 @@ export const ADVANCED_PLAYERS_ROSTER = [
   { first: 'Sean', last: 'Tanner', weight: '82', height: '178', primaryPos: '9. Scrum Half', secondaryPos: '10. Fly Half', club: '', gender: 'Male' },
 ];
 
-export const NZPA_ROSTER = [];
+export const NZPA_ROSTER = [
+  { first: 'Blaire', last: "Apu'ula", weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+  { first: 'Tee-Queeva', last: 'Ben-Tupuola', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+  { first: 'Dillon', last: 'Cullen', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+  { first: 'Ella-Jireh', last: 'Fonoti', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+  { first: 'Emily', last: 'Forster', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+  { first: 'Ruby', last: 'Harrison', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+  { first: 'Keira', last: 'Jordan', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+  { first: 'Kiahna', last: 'King-Tararo', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+  { first: 'Ariana', last: 'Leith', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+  { first: 'Maia', last: 'Mapakaitolo', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+  { first: 'Taliah', last: 'Mapakaitolo', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+  { first: 'Ella', last: 'Mear', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+  { first: 'Milan', last: 'Patea', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+  { first: 'Azarhya', last: 'Puketapu', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+  { first: 'Quade', last: 'Rikiriki', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+  { first: 'Aiden', last: 'Saxon', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+  { first: 'Prisaiis', last: 'Tawhara-Hunt', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+  { first: 'Talia', last: 'Timoteo', weight: '', height: '', primaryPos: '', secondaryPos: '', club: '', gender: '' },
+];
 
 export const ROSTERS_BY_COURSE = {
   iranz_usa: IRANZ_USA_ROSTER,
